@@ -1,0 +1,67 @@
+defineTest( appendDependencyDirectories ) {
+
+    unset( DEPEND_PATH_LAYER )
+
+    for( subdir, ARGS ) {
+        entries = $$files( "$${subdir}/*" )
+        for( entry, entries ) {
+            sub_entries = $$files( "$${entry}/*" )
+
+            !isEmpty( sub_entries ) {
+                DEPEND_PATH_LAYER *= "$${entry}"
+
+                project_entry = "$${entry}/*.prm"
+                sub_entries = $$files( "$${project_entry}" )
+
+                # Если хоть один файл существует, то запоминаем директорию
+                !isEmpty( sub_entries ) {
+                    DEPEND_PATH *= "$${entry}"
+                }
+            }
+        }
+    }
+    export( DEPEND_PATH_LAYER )
+    export( DEPEND_PATH )
+
+    isEmpty( DEPEND_PATH_LAYER ) : \
+        return( false )
+    return( true )
+}
+
+defineTest( recursiveDefineDependencyDirectories ) {
+    DEPEND_PATH_LAYER = $${DEPEND_PATH}
+    for( layer, 1..100 ) {
+        !appendDependencyDirectories( $${DEPEND_PATH_LAYER} ) : \
+            break()
+    }
+    export( DEPEND_PATH )
+    return( true )
+}
+
+# MAIN
+
+# Find .qmake.conf of complex
+CONFIG_PATH = "$${_PRO_FILE_PWD_}"
+for( tmp, 1..20 ) {
+    CONFIG_FILE = "$${CONFIG_PATH}/.qmake.conf"
+    exists( $${CONFIG_FILE} ) : \
+        break()
+    unset( CONFIG_FILE )
+    CONFIG_PATH = $$dirname( CONFIG_PATH )
+}
+
+!exists( $${CONFIG_FILE} ) : \
+    error( The file \".qmake.conf\" not found. )
+
+
+# Find all *.prm files
+DEPEND_PATH = "$$replace( CONFIG_PATH, "\\\\" , "/" )"
+recursiveDefineDependencyDirectories()
+
+## Out messages
+#for( subdir, DEPEND_PATH ) {
+#    sub_entries = $$files( $${subdir}/*.prm )
+#    for( sub_entry, sub_entries ) {
+#        message( [$$basename( _PRO_FILE_ )]: Find module: $${sub_entry} )
+#    }
+#}

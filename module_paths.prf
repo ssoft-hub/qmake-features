@@ -1,0 +1,37 @@
+# Пути сборки комплекса
+################################################################################
+
+# global
+CONFIG_PATH = $${_PRO_FILE_PWD_}
+for( tmp, 1..20 ) {
+    CONFIG_FILE = $${CONFIG_PATH}/.qmake.conf
+    exists( $${CONFIG_FILE} ) : \
+        break()
+
+    unset(CONFIG_FILE)
+    CONFIG_PATH = $$dirname(CONFIG_PATH)
+}
+
+!exists( $${CONFIG_FILE} ) : \
+    error( The file \".qmake.conf\" not found. )
+
+# Исправление багов qmake Qt4.
+isEqual( QT_MAJOR_VERSION, 4 ) {
+    TOOL_PATH = qt.$${QT_VERSION}-$$basename(QMAKE_CXX)
+} else {
+    TOOL_PATH = qt.$${QT_VERSION}-$$basename(QMAKESPEC)
+}
+
+CONFIG( debug, debug|release ) {
+    DESTDIR = $${CONFIG_PATH}/bin/$${TOOL_PATH}/debug
+    GENERATED_FILES_DIR=$${CONFIG_PATH}/build/$${TOOL_PATH}/debug/$${TARGET}
+} else {
+    DESTDIR = $${CONFIG_PATH}/bin/$${TOOL_PATH}/release
+    GENERATED_FILES_DIR=$${CONFIG_PATH}/build/$${TOOL_PATH}/release/$${TARGET}
+}
+
+LIBS *= -L$${DESTDIR}
+OBJECTS_DIR = $${GENERATED_FILES_DIR}/obj
+MOC_DIR = $${GENERATED_FILES_DIR}/moc
+RCC_DIR = $${GENERATED_FILES_DIR}/rcc
+UI_DIR = $${GENERATED_FILES_DIR}/ui

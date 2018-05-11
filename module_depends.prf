@@ -1,0 +1,135 @@
+# Modules finding ...
+load( module_finder )
+
+# Разрешение зависимостей между компонентами комплекса
+################################################################################
+
+# private
+defineTest( loadDependency ) {
+    for( module, ARGS ) {
+        DEPENDS -= "$${module}"
+        LOADED_DEPENDS *= "$${module}"
+
+        for( subdir, DEPEND_PATH ) {
+            project_entry = "$${subdir}/$${module}.prm"
+            exists( $${project_entry} ): \
+                break()
+        }
+        exists( $${project_entry} ) {
+            message( [$$basename( _PRO_FILE_ )]: Load dependency $${module} from \"$${project_entry}\" )
+            include( $${project_entry} )
+        } else {
+            error( [$$basename( _PRO_FILE_ )]: Can not resolve dependency $${module} )
+        }
+    }
+
+    export( DEPENDS )
+    export( LOADED_DEPENDS )
+    export( CONFIG )
+    export( QMAKE_CXXFLAGS )
+    export( INCLUDEPATH )
+    export( DEPENDPATH )
+    export( LIBS )
+    export( QT )
+    export( DEFINES )
+    export( HEADERS )
+    export( SOURCES )
+    return( true )
+}
+
+# private
+defineTest( recursiveLoadAllDependicies ) {
+    for( tmp, 1..100 ) {
+        !isEmpty( DEPENDS ) {
+            DEPENDS = $$unique( DEPENDS )
+            loadDependency( $${DEPENDS} )
+        } else {
+            break()
+        }
+    }
+    # more than
+    !isEmpty( DEPENDS ) {
+        error(Fatal dependency resolving)
+    }
+
+    export( DEPENDS )
+    export( LOADED_DEPENDS )
+    export( CONFIG )
+    export( QMAKE_CXXFLAGS )
+    export( INCLUDEPATH )
+    export( DEPENDPATH )
+    export( LIBS )
+    export( QT )
+    export( DEFINES )
+    export( HEADERS )
+    export( SOURCES )
+    return(true)
+}
+
+# protected
+defineTest( messageDependenciesResult ) {
+    message( DEPENDS: $${DEPENDS} )
+    message( LOADED_DEPENDS: $${LOADED_DEPENDS} )
+    message( CONFIG: $${CONFIG} )
+    message( QMAKE_CXXFLAGS: $${QMAKE_CXXFLAGS} )
+    message( INCLUDEPATH: $${INCLUDEPATH} )
+    message( DEPENDPATH: $${DEPENDPATH} )
+    message( LIBS: $${LIBS} )
+    message( QT: $${QT} )
+    message( DEFINES: $${DEFINES} )
+    message( HEADERS: $${HEADERS} )
+    message( SOURCES: $${SOURCES} )
+}
+
+# public
+defineTest( loadDependencies ) {
+
+    MODULE = $$basename(_PRO_FILE_)
+
+    # Включаем собственные зависимости
+    MODULE_PRM = $$replace( MODULE, pro, prm )
+    exists( $${_PRO_FILE_PWD_}/$${MODULE_PRM} ) {
+        include( $${_PRO_FILE_PWD_}/$${MODULE_PRM} )
+    }
+
+    # Включаем зависимости от других модулей
+    if ( !isEmpty( DEPENDS ) ) {
+        message( [$$basename( _PRO_FILE_ )]: Dependencies resolving ... )
+        $${MODULE}.depends = $${DEPENDS}
+        loadDependency( $${DEPENDS} )
+        recursiveLoadAllDependicies()
+    }
+
+    DEPENDS = $$unique( DEPENDS )
+    LOADED_DEPENDS = $$unique( LOADED_DEPENDS )
+    CONFIG = $$unique( CONFIG )
+    QMAKE_CXXFLAGS = $$unique( QMAKE_CXXFLAGS )
+    INCLUDEPATH = $$unique( INCLUDEPATH )
+    DEPENDPATH = $$unique( DEPENDPATH )
+    LIBS = $$unique( LIBS )
+    QT = $$unique( QT )
+    DEFINES = $$unique( DEFINES )
+    HEADERS = $$unique( HEADERS )
+    SOURCES = $$unique( SOURCES )
+
+    # Удалаем себя из зависимостей
+    LIBS -= -l$${TARGET}
+
+    #messageDependenciesResult()
+
+    export( DEPENDS )
+    export( LOADED_DEPENDS )
+    export( CONFIG )
+    export( QMAKE_CXXFLAGS )
+    export( INCLUDEPATH )
+    export( DEPENDPATH )
+    export( LIBS )
+    export( QT )
+    export( DEFINES )
+    export( HEADERS )
+    export( SOURCES )
+    return(true)
+}
+
+# global
+loadDependencies()
