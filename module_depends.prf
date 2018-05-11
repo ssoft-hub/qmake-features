@@ -1,10 +1,6 @@
 # Modules finding ...
-load( module_finder )
+load( module_finding )
 
-# Разрешение зависимостей между компонентами комплекса
-################################################################################
-
-# private
 defineTest( loadDependency ) {
     for( module, ARGS ) {
         DEPENDS -= "$${module}"
@@ -23,6 +19,7 @@ defineTest( loadDependency ) {
         }
     }
 
+    # If it needs this list can be extended (in 3 places into this file)
     export( DEPENDS )
     export( LOADED_DEPENDS )
     export( CONFIG )
@@ -34,10 +31,15 @@ defineTest( loadDependency ) {
     export( DEFINES )
     export( HEADERS )
     export( SOURCES )
+    export( FORMS )
+    export( LEXSOURCES )
+    export( RES_FILE )
+    export( RESOURCES )
+    export( TRANSLATIONS )
+    export( DISTFILES )
     return( true )
 }
 
-# private
 defineTest( recursiveLoadAllDependicies ) {
     for( tmp, 1..100 ) {
         !isEmpty( DEPENDS ) {
@@ -52,6 +54,7 @@ defineTest( recursiveLoadAllDependicies ) {
         error(Fatal dependency resolving)
     }
 
+    # If it needs this list can be extended (in 3 places into this file)
     export( DEPENDS )
     export( LOADED_DEPENDS )
     export( CONFIG )
@@ -63,60 +66,40 @@ defineTest( recursiveLoadAllDependicies ) {
     export( DEFINES )
     export( HEADERS )
     export( SOURCES )
+    export( FORMS )
+    export( LEXSOURCES )
+    export( RES_FILE )
+    export( RESOURCES )
+    export( TRANSLATIONS )
+    export( DISTFILES )
     return(true)
 }
 
-# protected
-defineTest( messageDependenciesResult ) {
-    message( DEPENDS: $${DEPENDS} )
-    message( LOADED_DEPENDS: $${LOADED_DEPENDS} )
-    message( CONFIG: $${CONFIG} )
-    message( QMAKE_CXXFLAGS: $${QMAKE_CXXFLAGS} )
-    message( INCLUDEPATH: $${INCLUDEPATH} )
-    message( DEPENDPATH: $${DEPENDPATH} )
-    message( LIBS: $${LIBS} )
-    message( QT: $${QT} )
-    message( DEFINES: $${DEFINES} )
-    message( HEADERS: $${HEADERS} )
-    message( SOURCES: $${SOURCES} )
-}
-
-# public
 defineTest( loadDependencies ) {
-
+    # Include own dependencies
     MODULE = $$basename(_PRO_FILE_)
-
-    # Включаем собственные зависимости
-    MODULE_PRM = $$replace( MODULE, pro, prm )
+    MODULE_PRM = $$replace( MODULE, .pro, .prm )
     exists( $${_PRO_FILE_PWD_}/$${MODULE_PRM} ) {
         include( $${_PRO_FILE_PWD_}/$${MODULE_PRM} )
     }
 
-    # Включаем зависимости от других модулей
+    # Resolve dependencies
     if ( !isEmpty( DEPENDS ) ) {
         message( [$$basename( _PRO_FILE_ )]: Dependencies resolving ... )
+        MODULE = $$basename(_PRO_FILE_)
         $${MODULE}.depends = $${DEPENDS}
         loadDependency( $${DEPENDS} )
         recursiveLoadAllDependicies()
     }
 
+    # Remove duplicates
     DEPENDS = $$unique( DEPENDS )
     LOADED_DEPENDS = $$unique( LOADED_DEPENDS )
-    CONFIG = $$unique( CONFIG )
-    QMAKE_CXXFLAGS = $$unique( QMAKE_CXXFLAGS )
-    INCLUDEPATH = $$unique( INCLUDEPATH )
-    DEPENDPATH = $$unique( DEPENDPATH )
-    LIBS = $$unique( LIBS )
-    QT = $$unique( QT )
-    DEFINES = $$unique( DEFINES )
-    HEADERS = $$unique( HEADERS )
-    SOURCES = $$unique( SOURCES )
 
-    # Удалаем себя из зависимостей
+    # Delete self
     LIBS -= -l$${TARGET}
 
-    #messageDependenciesResult()
-
+    # If it needs this list can be extended (in 3 places into this file)
     export( DEPENDS )
     export( LOADED_DEPENDS )
     export( CONFIG )
@@ -128,6 +111,12 @@ defineTest( loadDependencies ) {
     export( DEFINES )
     export( HEADERS )
     export( SOURCES )
+    export( FORMS )
+    export( LEXSOURCES )
+    export( RES_FILE )
+    export( RESOURCES )
+    export( TRANSLATIONS )
+    export( DISTFILES )
     return(true)
 }
 

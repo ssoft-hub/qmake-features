@@ -15,12 +15,7 @@ for( tmp, 1..20 ) {
 !exists( $${CONFIG_FILE} ) : \
     error( The file \".qmake.conf\" not found. )
 
-# Исправление багов qmake Qt4.
-isEqual( QT_MAJOR_VERSION, 4 ) {
-    TOOL_PATH = qt.$${QT_VERSION}-$$basename(QMAKE_CXX)
-} else {
-    TOOL_PATH = qt.$${QT_VERSION}-$$basename(QMAKESPEC)
-}
+TOOL_PATH = qt.$${QT_VERSION}
 
 CONFIG( debug, debug|release ) {
     DESTDIR = $${CONFIG_PATH}/bin/$${TOOL_PATH}/debug
@@ -32,6 +27,7 @@ CONFIG( debug, debug|release ) {
 
 LIBS *= -L$${DESTDIR}
 OBJECTS_DIR = $${GENERATED_FILES_DIR}/obj
-MOC_DIR = $${GENERATED_FILES_DIR}/moc
+# Qt4: Не находит mocinclude.tmp в нужном месте
+#MOC_DIR = $${GENERATED_FILES_DIR}/moc
 RCC_DIR = $${GENERATED_FILES_DIR}/rcc
 UI_DIR = $${GENERATED_FILES_DIR}/ui
