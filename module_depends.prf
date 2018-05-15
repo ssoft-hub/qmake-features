@@ -7,7 +7,7 @@ defineTest( loadDependency ) {
         LOADED_DEPENDS *= "$${module}"
 
         for( subdir, DEPEND_PATH ) {
-            project_entry = "$${subdir}/$${module}.prm"
+            project_entry = "$${subdir}/$${module}.prf"
             exists( $${project_entry} ): \
                 break()
         }
@@ -15,7 +15,8 @@ defineTest( loadDependency ) {
             message( [$$basename( _PRO_FILE_ )]: Load dependency $${module} from \"$${project_entry}\" )
             include( $${project_entry} )
         } else {
-            error( [$$basename( _PRO_FILE_ )]: Can not resolve dependency $${module} )
+            !isEqual( TARGET, $${module} ) : \
+                error( [$$basename( _PRO_FILE_ )]: Can not resolve dependency $${module} )
         }
     }
 
@@ -77,11 +78,7 @@ defineTest( recursiveLoadAllDependicies ) {
 
 defineTest( loadDependencies ) {
     # Include own dependencies
-    MODULE = $$basename(_PRO_FILE_)
-    MODULE_PRM = $$replace( MODULE, .pro, .prm )
-    exists( $${_PRO_FILE_PWD_}/$${MODULE_PRM} ) {
-        include( $${_PRO_FILE_PWD_}/$${MODULE_PRM} )
-    }
+    DEPENDS *= $${TARGET}
 
     # Resolve dependencies
     if ( !isEmpty( DEPENDS ) ) {

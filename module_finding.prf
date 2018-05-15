@@ -11,7 +11,7 @@ isEmpty( DEPEND_PATH ) {
                 !isEmpty( sub_entries ) {
                     DEPEND_PATH_LAYER *= "$${entry}"
 
-                    project_entry = "$${entry}/*.prm"
+                    project_entry = "$${entry}/*.prf"
                     sub_entries = $$files( "$${project_entry}" )
 
                     # Если хоть один файл существует, то запоминаем директорию
@@ -53,14 +53,14 @@ isEmpty( DEPEND_PATH ) {
         error( The file \".qmake.conf\" not found. )
 
 
-    # Find all *.prm files
+    # Find all *.prf files
     DEPEND_PATH = "$$replace( CONFIG_PATH, "\\\\" , "/" )"
     recursiveDefineDependencyDirectories()
 
     for( subdir, DEPEND_PATH ) {
-        sub_entries = $$files( $${subdir}/*.prm )
+        sub_entries = $$files( $${subdir}/*.prf )
         for( sub_entry, sub_entries ) {
-            message( [$$basename( _PRO_FILE_ )]: Find module: $${sub_entry} )
+            message( [$$basename( _PRO_FILE_ )]: Find module or feature: $${sub_entry} )
         }
     }
 }
