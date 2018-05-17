@@ -1,0 +1,9 @@
+GIT_VERSION = $$system( git describe )
+GIT_BRANCH = $$system( git symbolic-ref --short HEAD )
+GIT_REVISION = $$system( git rev-parse --short HEAD )
+
+DEFINES *= GIT_VERSION=\\\"$${GIT_VERSION}\\\"
+DEFINES *= GIT_BRANCH=\\\"$${GIT_BRANCH}\\\"
+DEFINES *= GIT_REVISION=\\\"$${GIT_REVISION}\\\"
+
+message( [$$basename( _PRO_FILE_ )]: Git version of $${TARGET} is $${GIT_VERSION}.$${GIT_REVISION} branch: $${GIT_BRANCH} )
