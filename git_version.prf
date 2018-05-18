@@ -1,6 +1,15 @@
-GIT_VERSION = $$system( git describe )
-GIT_BRANCH = $$system( git symbolic-ref --short HEAD )
-GIT_REVISION = $$system( git rev-parse --short HEAD )
+# Если переменая GIT_PWD не указана явно, то считается, что проектный файл
+# является частью репозитория. Либо можно явно задать значение переменной
+# GIT_PWD, если проектный файл не является частью репозитория (например, для
+# проектов 3rdparty).
+
+isEmpty( GIT_PWD ) : \
+    GIT_PWD = $${_PRO_FILE_PWD_}
+
+GIT_VERSION_CD_COMMAND = "cd \"$${GIT_PWD}\" &&"
+GIT_VERSION = $$system( $${GIT_VERSION_CD_COMMAND} git describe )
+GIT_BRANCH = $$system( $${GIT_VERSION_CD_COMMAND} git symbolic-ref --short HEAD )
+GIT_REVISION = $$system( $${GIT_VERSION_CD_COMMAND} git rev-parse --short HEAD )
 
 DEFINES *= GIT_VERSION=\\\"$${GIT_VERSION}\\\"
 DEFINES *= GIT_BRANCH=\\\"$${GIT_BRANCH}\\\"
