@@ -44,7 +44,8 @@ defineTest( recursiveDefineDependencyDirectories ) {
 # Попытка загрузить кеш с перечнем модулей
 win* {
     DEPENDS_CACHE_FILE = "$${QMAKE_CONF_FILE_PWD}\\.depends.cache"
-} else {
+}
+unix {
     DEPENDS_CACHE_FILE = "$${QMAKE_CONF_FILE_PWD}/.depends.cache"
 }
 
@@ -58,7 +59,7 @@ contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) : \
     # При наличии файла
     exists( $${DEPENDS_CACHE_FILE} ) {
         # Зачитываем
-        message( [$$basename( _PRO_FILE_ )]: Load \".depends.cache\" file with cached path to modules. )
+        message( [$$basename( _PRO_FILE_ )]: Load cached path from $${DEPENDS_CACHE_FILE}. )
         include( $${DEPENDS_CACHE_FILE} )
     } else {
         # или помечаем, что не используем кэш
@@ -84,12 +85,13 @@ contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) \
 {
     # Механизм QMAKE_SUBSTITUTES с параметром .depends.cache.in не работает для msvc,
     # поэтому формирование файла реализовано через echo с перенаправлением в файл.
-    message( [$$basename( _PRO_FILE_ )]: Create \".depends.cache\" file with cached path to modules. )
+    message( [$$basename( _PRO_FILE_ )]: Save cached path to $${DEPENDS_CACHE_FILE}. )
     win* {
         system( echo DEPEND_PATH = \\> \"$${DEPENDS_CACHE_FILE}\" )
         for( module_path, DEPEND_PATH ) : \
             system( echo \"$${module_path}\" \\>> \"$${DEPENDS_CACHE_FILE}\" )
-    } else {
+    }
+    unix {
         system( echo \'DEPEND_PATH = \\\'> \'$${DEPENDS_CACHE_FILE}\' )
         for( module_path, DEPEND_PATH ) : \
             system( echo \'\"$${module_path}\" \\\'>> \'$${DEPENDS_CACHE_FILE}\' )
