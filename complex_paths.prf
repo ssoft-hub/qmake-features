@@ -1,27 +1,22 @@
 # Пути сборки комплекса
 ################################################################################
 
-CONFIG_PATH = $${_PRO_FILE_PWD_}
-for( tmp, 1..20 ) {
-    CONFIG_FILE = $${CONFIG_PATH}/.qmake.conf
-    exists( $${CONFIG_FILE} ) : \
-        break()
+# Поиск общей конфигурации
+!load( qmake_conf_path ) : error( Can not find feature \"qmake_conf_path\" )
 
-    unset(CONFIG_FILE)
-    CONFIG_PATH = $$dirname(CONFIG_PATH)
+# Исправление багов qmake Qt4.
+isEqual( QT_MAJOR_VERSION, 4 ) {
+    TOOL_PATH = qt.$${QT_VERSION}
+} else {
+    TOOL_PATH = qt.$${QT_VERSION}-$$basename(QMAKESPEC)
 }
 
-!exists( $${CONFIG_FILE} ) : \
-    error( The file \".qmake.conf\" not found. )
-
-TOOL_PATH = qt.$${QT_VERSION}
-
 CONFIG( debug, debug|release ) {
-    DESTDIR = $${CONFIG_PATH}/bin/$${TOOL_PATH}/debug
-    GENERATED_FILES_DIR=$${CONFIG_PATH}/build/$${TOOL_PATH}/debug/$${TARGET}
+    DESTDIR = $${QMAKE_CONF_FILE_PWD}/bin/$${TOOL_PATH}/debug
+    GENERATED_FILES_DIR=$${QMAKE_CONF_FILE_PWD}/build/$${TOOL_PATH}/debug/$${TARGET}
 } else {
-    DESTDIR = $${CONFIG_PATH}/bin/$${TOOL_PATH}/release
-    GENERATED_FILES_DIR=$${CONFIG_PATH}/build/$${TOOL_PATH}/release/$${TARGET}
+    DESTDIR = $${QMAKE_CONF_FILE_PWD}/bin/$${TOOL_PATH}/release
+    GENERATED_FILES_DIR=$${QMAKE_CONF_FILE_PWD}/build/$${TOOL_PATH}/release/$${TARGET}
 }
 
 LIBS *= -L$${DESTDIR}

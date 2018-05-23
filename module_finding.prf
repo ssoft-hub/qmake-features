@@ -1,66 +1,97 @@
-isEmpty( DEPEND_PATH ) {
-    defineTest( appendDependencyDirectories ) {
+defineTest( appendDependencyDirectories ) {
+    unset( DEPEND_PATH_LAYER )
+    for( subdir, ARGS ) {
+        entries = $$files( "$${subdir}/*" )
+        for( entry, entries ) {
+            entry = $$replace( entry, "\\\\", "/" )
+            sub_entries = $$files( "$${entry}/*" )
 
-        unset( DEPEND_PATH_LAYER )
+            !isEmpty( sub_entries ) {
+                DEPEND_PATH_LAYER *= "$${entry}"
 
-        for( subdir, ARGS ) {
-            entries = $$files( "$${subdir}/*" )
-            for( entry, entries ) {
-                sub_entries = $$files( "$${entry}/*" )
+                project_entry = "$${entry}/*.prf"
+                sub_entries = $$files( "$${project_entry}" )
 
+                # Если хоть один файл существует, то запоминаем директорию
                 !isEmpty( sub_entries ) {
-                    DEPEND_PATH_LAYER *= "$${entry}"
-
-                    project_entry = "$${entry}/*.prf"
-                    sub_entries = $$files( "$${project_entry}" )
-
-                    # Если хоть один файл существует, то запоминаем директорию
-                    !isEmpty( sub_entries ) {
-                        DEPEND_PATH *= "$${entry}"
-                    }
+                    DEPEND_PATH *= "$${entry}"
                 }
             }
         }
-        export( DEPEND_PATH_LAYER )
-        export( DEPEND_PATH )
-
-        isEmpty( DEPEND_PATH_LAYER ) : \
-            return( false )
-        return( true )
     }
+    export( DEPEND_PATH_LAYER )
+    export( DEPEND_PATH )
 
-    defineTest( recursiveDefineDependencyDirectories ) {
-        DEPEND_PATH_LAYER = $${DEPEND_PATH}
-        for( layer, 1..100 ) {
-            !appendDependencyDirectories( $${DEPEND_PATH_LAYER} ) : \
-                break()
-        }
-        export( DEPEND_PATH )
-        return( true )
-    }
+    isEmpty( DEPEND_PATH_LAYER ) : \
+        return( false )
+    return( true )
+}
 
-    # Find .qmake.conf of complex
-    CONFIG_PATH = "$${_PRO_FILE_PWD_}"
-    for( tmp, 1..20 ) {
-        CONFIG_FILE = "$${CONFIG_PATH}/.qmake.conf"
-        exists( $${CONFIG_FILE} ) : \
+defineTest( recursiveDefineDependencyDirectories ) {
+    DEPEND_PATH_LAYER = $${DEPEND_PATH}
+    for( layer, 1..100 ) {
+        !appendDependencyDirectories( $${DEPEND_PATH_LAYER} ) : \
             break()
-        unset( CONFIG_FILE )
-        CONFIG_PATH = $$dirname( CONFIG_PATH )
     }
+    export( DEPEND_PATH )
+    return( true )
+}
 
-    !exists( $${CONFIG_FILE} ) : \
-        error( The file \".qmake.conf\" not found. )
+# Main
+# Поиск общей конфигурации
+!load( qmake_conf_path ) : error( Can not find feature \"qmake_conf_path\" )
 
+# Попытка загрузить кеш с перечнем модулей
+win* {
+    DEPENDS_CACHE_FILE = "$${QMAKE_CONF_FILE_PWD}\\.depends.cache"
+} else {
+    DEPENDS_CACHE_FILE = "$${QMAKE_CONF_FILE_PWD}/.depends.cache"
+}
 
-    # Find all *.prf files
-    DEPEND_PATH = "$$replace( CONFIG_PATH, "\\\\" , "/" )"
+# Если нужно сформировать кэш, то текущий не используется
+contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) : \
+    DEPENDS_CACHE_CONFIG *= unuse_depends_cache
+
+# Загрузка кэша, если он есть и нет явного флага не использовать
+!contains( DEPENDS_CACHE_CONFIG, unuse_depends_cache ) \
+{
+    # При наличии файла
+    exists( $${DEPENDS_CACHE_FILE} ) {
+        # Зачитываем
+        message( [$$basename( _PRO_FILE_ )]: Load \".depends.cache\" file with cached path to modules. )
+        include( $${DEPENDS_CACHE_FILE} )
+    } else {
+        # или помечаем, что не используем кэш
+        DEPENDS_CACHE_CONFIG *= unuse_depends_cache
+    }
+}
+
+# Если не используем кэш
+contains( DEPENDS_CACHE_CONFIG, unuse_depends_cache ) \
+{
+    # Осуществляем рекурсивный поиск модулей
+    DEPEND_PATH = "$$replace( QMAKE_CONF_FILE_PWD, "\\\\" , "/" )"
     recursiveDefineDependencyDirectories()
 
+    # Выводим сообщения о найденных модулях
     for( subdir, DEPEND_PATH ) {
-        sub_entries = $$files( $${subdir}/*.prf )
-        for( sub_entry, sub_entries ) {
-            message( [$$basename( _PRO_FILE_ )]: Find module or feature: $${sub_entry} )
-        }
+        message( [$$basename( _PRO_FILE_ )]: Find modules into: $${subdir} )
+    }
+}
+
+# Если нужно сформировать файл с кэшем
+contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) \
+{
+    # Механизм QMAKE_SUBSTITUTES с параметром .depends.cache.in не работает для msvc,
+    # поэтому формирование файла реализовано через echo с перенаправлением в файл.
+    message( [$$basename( _PRO_FILE_ )]: Create \".depends.cache\" file with cached path to modules. )
+    win* {
+        system( echo DEPEND_PATH = \\> \"$${DEPENDS_CACHE_FILE}\" )
+        for( module_path, DEPEND_PATH ) : \
+            system( echo \"$${module_path}\" \\>> \"$${DEPENDS_CACHE_FILE}\" )
+    } else {
+        system( echo \'DEPEND_PATH = \\\'> \'$${DEPENDS_CACHE_FILE}\' )
+        for( module_path, DEPEND_PATH ) : \
+            system( echo \'\"$${module_path}\" \\\'>> \'$${DEPENDS_CACHE_FILE}\' )
     }
 }

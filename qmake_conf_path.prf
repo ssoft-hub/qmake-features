@@ -1,0 +1,17 @@
+# Поиск файла .qmake.conf с общей конфигурацией комплекса.
+# В результате вычисляется путь к директории и к файлу конфигурации.
+# CONFIG_DIR
+
+QMAKE_CONF_FILE_PWD = "$${_PRO_FILE_PWD_}"
+QMAKE_CONF_FILE_PWD = "$$replace( QMAKE_CONF_FILE_PWD, "\\\\", "/" )"
+for( tmp, 1..100 ) {
+    QMAKE_CONF_FILE = "$${QMAKE_CONF_FILE_PWD}/.qmake.conf"
+    exists( $${QMAKE_CONF_FILE} ) : \
+        break()
+    unset( QMAKE_CONF_FILE )
+    QMAKE_CONF_FILE_PWD = $$dirname( QMAKE_CONF_FILE_PWD )
+}
+
+# Проверяем, что .qmake.conf найден
+!exists( $${QMAKE_CONF_FILE} ) : \
+    error( The file \".qmake.conf\" not found. )
