@@ -25,14 +25,9 @@ DEPENDS *= \
 | Тип | Сообщение | Описание |
 |-----|------|-------|
 | Информация | Dependencies resolving ... | Информирует о начале процесса поиска и загрузки фалов зависимостей. |
-| Информация | Load dependency "\<module\>" from \"<path>\". | Информирует об успешной загрузке файла зависимостей модуля "\<module\>" из файла \"<path>\". |
+| Информация | Load dependency "\<module\>" from "\<path\>". | Информирует об успешной загрузке файла зависимостей модуля "\<module\>" из файла "\<path\>". |
 | Ошибка | Can not resolve dependency "\<module\>". | Возникает в случае, когда не найден файл \<module\>.prf с зависимостями модуля "\<module\>". |
 | Ошибка | Fatal dependency resolving. | Возникает в случае, когда глубина дерева зависимостей превышает 1000. |
-
-error( [$$basename( _PRO_FILE_ )]: Can not resolve dependency $${module} )
-error(Fatal dependency resolving)
-message( [$$basename( _PRO_FILE_ )]:  )
-
 
 ## Зависимости
 
