@@ -42,7 +42,7 @@ defineTest( loadDependency ) {
 }
 
 defineTest( recursiveLoadAllDependicies ) {
-    for( tmp, 1..100 ) {
+    for( tmp, 1..1000 ) {
         !isEmpty( DEPENDS ) {
             DEPENDS = $$unique( DEPENDS )
             loadDependency( $${DEPENDS} )

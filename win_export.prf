@@ -1,4 +1,4 @@
-win32 {
+win* {
     DEFINES *= WIN_EXPORT_DECLARE=__declspec(dllexport)
     DEFINES *= WIN_IMPORT_DECLARE=__declspec(dllimport)
 } else {
