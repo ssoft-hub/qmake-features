@@ -27,7 +27,7 @@ isEqual( QT_MAJOR_VERSION, 4 ) {
 
     win* {
         MAKE_FEATURES_COMMAND = mkdir \"$${QT4_FEATURES_PATH}\"
-        COPY_FEATURES_COMMAND = copy /Y \"$${QT5_FEATURES_PATH}\" \"$${QT4_FEATURES_PATH}\"
+        COPY_FEATURES_COMMAND = xcopy /Y /s \"$${QT5_FEATURES_PATH}\" \"$${QT4_FEATURES_PATH}\"
         COPY_CONFIG_COMMAND = copy /Y \"$${QT5_BASE_PWD}\\.qmake.conf\" \"$${QT4_BASE_PWD}\\.qmake.cache\"
     }
 
