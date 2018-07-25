@@ -1,7 +1,12 @@
 win* {
-    DEFINES *= WIN_EXPORT_DECLARE=__declspec(dllexport)
-    DEFINES *= WIN_IMPORT_DECLARE=__declspec(dllimport)
-} else {
-    DEFINES *= WIN_EXPORT_DECLARE=\"\"
-    DEFINES *= WIN_IMPORT_DECLARE=\"\"
+    WIN_EXPORT_DECLARE = __declspec(dllexport)
+    WIN_IMPORT_DECLARE = __declspec(dllimport)
 }
+
+!win* {
+    WIN_EXPORT_DECLARE = \"\"
+    WIN_IMPORT_DECLARE = \"\"
+}
+
+DEFINES *= WIN_EXPORT_DECLARE=$${WIN_EXPORT_DECLARE}
+DEFINES *= WIN_IMPORT_DECLARE=$${WIN_IMPORT_DECLARE}

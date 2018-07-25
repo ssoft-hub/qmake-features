@@ -16,3 +16,11 @@ DEFINES *= GIT_BRANCH=\\\"$${GIT_BRANCH}\\\"
 DEFINES *= GIT_REVISION=\\\"$${GIT_REVISION}\\\"
 
 message( [$$basename( _PRO_FILE_ )]: Git version of $${TARGET} is $${GIT_VERSION}.$${GIT_REVISION} branch: $${GIT_BRANCH} )
+
+isEmpty( GIT_VERSION ) : \
+    VERSION = $$GIT_VERSION \
+
+CONFIG *= \
+    skip_target_version_ext \
+
+unset( GIT_VERSION_CD_COMMAND )

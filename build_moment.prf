@@ -1,0 +1,10 @@
+# Получение даты и времени
+win* {
+    BUILD_DATE = $$system( date /t )
+    BUILD_TIME = $$system( time /T )
+}
+
+unix {
+    BUILD_DATE = $$system( date "+%d.%m.%Y" )
+    BUILD_TIME = $$system( date "+%H:%M:%S" )
+}
