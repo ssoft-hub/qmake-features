@@ -2,57 +2,93 @@
 #ifndef AUTO_VERSION_STRUCTS
 #define AUTO_VERSION_STRUCTS
 
+#include <algorithm>
 #include <cstring>
-#include <set>
+#include <list>
 
 namespace AutoVersion
 {
-    namespace Private
+    typedef const char * Chars;
+
+    struct String
     {
-        inline bool isEqual ( const char * right, const char * left )
+        Chars c_str;
+
+        String ( Chars chars = Chars() )
+            : c_str( chars )
+        {}
+
+        String & operator = ( Chars chars )
         {
-            return ( right == left )
+            c_str = chars;
+            return *this;
+        }
+
+        operator Chars () const
+        {
+            return c_str;
+        }
+
+        operator bool () const
+        {
+            return !!c_str;
+        }
+
+        bool operator == ( const String & other ) const
+        {
+            return ( c_str == other.c_str )
                 ? true
-                : ( !right || !left )
+                : ( !c_str || !other.c_str )
                     ? false
-                    : !strcmp( right, left );
+                    : strcmp( c_str, other.c_str ) == 0;
         }
 
-        inline bool isLess ( const char * right, const char * left )
+        bool operator != ( const String & other ) const
         {
-            return ( right == left )
+            return ( c_str == other.c_str )
                 ? false
-                : ( !right || !left )
-                    ? right < left
-                    : strcmp( right, left ) < 0;
+                : ( !c_str || !other.c_str )
+                    ? true
+                    : strcmp( c_str, other.c_str ) != 0;
         }
 
-        inline bool isMore ( const char * right, const char * left )
+        bool operator < ( const String & other ) const
         {
-            return ( right == left )
+            return ( c_str == other.c_str )
                 ? false
-                : ( !right || !left )
-                    ? right > left
-                    : strcmp( right, left ) > 0;
+                : ( !c_str || !other.c_str )
+                    ? c_str < other.c_str
+                    : strcmp( c_str, other.c_str ) < 0;
         }
-    }
+
+        bool operator > ( const String & other ) const
+        {
+            return ( c_str == other.c_str )
+                ? false
+                : ( !c_str || !other.c_str )
+                    ? c_str > other.c_str
+                    : strcmp( c_str, other.c_str ) > 0;
+        }
+    };
 }
 namespace AutoVersion
 {
+    struct Info;
+
     struct Info
     {
-        const char * name;
-        const char * version;
-        const char * revision;
-        const char * date;
-        const char * time;
-        const char * vendor;
-        const char * copyright;
-        const char * license;
-        const char * description;
+        String product;
+        String version;
+        String revision;
+        String date;
+        String time;
+        String vendor;
+        String copyright;
+        String license;
+        String description;
 
         Info ()
-        : name()
+        : product()
         , version()
         , revision()
         , date()
@@ -65,59 +101,67 @@ namespace AutoVersion
 
         inline bool operator == ( const Info & other ) const
         {
-            return ::AutoVersion::Private::isEqual( name, other.name )
-                && ::AutoVersion::Private::isEqual( version, other.version )
-                && ::AutoVersion::Private::isEqual( revision, other.revision )
-                && ::AutoVersion::Private::isEqual( date, other.date )
-                && ::AutoVersion::Private::isEqual( time, other.time )
-                && ::AutoVersion::Private::isEqual( vendor, other.vendor )
-                && ::AutoVersion::Private::isEqual( copyright, other.copyright )
-                && ::AutoVersion::Private::isEqual( description, other.description );
+            return product == other.product
+                &&  version == other.version
+                &&  revision == other.revision
+                &&  date == other.date
+                &&  time == other.time
+                &&  vendor == other.vendor
+                &&  copyright == other.copyright
+                &&  license == other.license
+                &&  description == other.description;
         }
 
         inline bool operator < ( const Info & other ) const
         {
-            if ( ::AutoVersion::Private::isLess( name, other.name ) )
+            if ( product < other.product )
                 return true;
-            if ( ::AutoVersion::Private::isMore( name, other.name ) )
+            if ( product > other.product )
                 return false;
 
-            if ( ::AutoVersion::Private::isLess( version, other.version ) )
+            if ( version < other.version )
                 return true;
-            if ( ::AutoVersion::Private::isMore( version, other.version ) )
+            if ( version > other.version )
                 return false;
 
-            if ( ::AutoVersion::Private::isLess( revision, other.revision ) )
+            if ( revision < other.revision )
                 return true;
-            if ( ::AutoVersion::Private::isMore( revision, other.revision ) )
+            if ( revision > other.revision )
                 return false;
 
-            if ( ::AutoVersion::Private::isLess( date, other.date ) )
+            if ( date < other.date )
                 return true;
-            if ( ::AutoVersion::Private::isMore( date, other.date ) )
+            if ( date > other.date )
                 return false;
 
-            if ( ::AutoVersion::Private::isLess( time, other.time ) )
+            if ( time < other.time )
                 return true;
-            if ( ::AutoVersion::Private::isMore( time, other.time ) )
+            if ( time > other.time )
                 return false;
 
-            if ( ::AutoVersion::Private::isLess( vendor, other.vendor ) )
+            if ( vendor < other.vendor )
                 return true;
-            if ( ::AutoVersion::Private::isMore( vendor, other.vendor ) )
+            if ( vendor > other.vendor )
                 return false;
 
-            if ( ::AutoVersion::Private::isLess( copyright, other.copyright ) )
+            if ( copyright < other.copyright )
                 return true;
-            if ( ::AutoVersion::Private::isMore( copyright, other.copyright ) )
+            if ( copyright > other.copyright )
                 return false;
 
-            if ( ::AutoVersion::Private::isLess( description, other.description ) )
+            if ( license < other.license )
                 return true;
-            if ( ::AutoVersion::Private::isMore( description, other.description ) )
+            if ( license > other.license )
                 return false;
 
-            return false;
+            //if ( description < other.description )
+            //    return true;
+            //if ( description > other.description )
+            //    return false;
+
+            //return false;
+
+            return description < other.description;
         }
     };
 
@@ -136,14 +180,12 @@ namespace AutoVersion
         {
             if ( build < other.build )
                 return true;
-            if ( build == other.build
-                && runtime < other.runtime )
-                    return true;
-            return false;
+            return build == other.build
+                && runtime < other.runtime;
         }
     };
 
-    typedef ::std::set< InfoPair > InfoPairs;
+    typedef ::std::list< InfoPair > InfoPairs;
 }
 
 namespace AutoVersion
@@ -163,19 +205,54 @@ namespace AutoVersion
         {
             if ( info < other.info )
                 return true;
-            if ( info == other.info
-                && dependencies < other.dependencies )
-                    return true;
-            return false;
+            return info == other.info
+                && dependencies < other.dependencies;
         }
     };
 
-    typedef ::std::set< Component > Components;
+    typedef ::std::list< Component > Components;
 }
 
 namespace AutoVersion
 {
-    extern  Components components ();
+    extern Components components ();
+}
+
+namespace AutoVersion
+{
+    // old C++ support
+    struct Status
+    {
+        enum Enum
+        {
+            Invalid,    //!< Different revision
+            Different,  //!< Different information (except revision)
+            Valid       //!< Perfect coincidence
+        };
+    };
+
+    inline Status::Enum statusOf ( const InfoPair & value )
+    {
+        if ( value.build.revision != value.runtime.revision )
+            return Status::Invalid;
+        if ( value.build == value.runtime )
+            return Status::Valid;
+        return Status::Different;
+    }
+
+    inline Status::Enum statusOf ( const Component & value )
+    {
+        Status::Enum result = statusOf( value.info );
+
+        // old C++ support
+        for ( InfoPairs::const_iterator iter = value.dependencies.cbegin();
+            result != Status::Invalid && iter != value.dependencies.cend(); ++iter )
+        {
+            result = ::std::min( result, statusOf( *iter ) );
+        }
+
+        return result;
+    }
 }
 
 #endif
