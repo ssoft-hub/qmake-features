@@ -45,36 +45,13 @@ namespace AutoVersion
 
         bool operator != ( const String & other ) const
         {
-            return ( c_str == other.c_str )
-                ? false
-                : ( !c_str || !other.c_str )
-                    ? true
-                    : strcmp( c_str, other.c_str ) != 0;
-        }
-
-        bool operator < ( const String & other ) const
-        {
-            return ( c_str == other.c_str )
-                ? false
-                : ( !c_str || !other.c_str )
-                    ? c_str < other.c_str
-                    : strcmp( c_str, other.c_str ) < 0;
-        }
-
-        bool operator > ( const String & other ) const
-        {
-            return ( c_str == other.c_str )
-                ? false
-                : ( !c_str || !other.c_str )
-                    ? c_str > other.c_str
-                    : strcmp( c_str, other.c_str ) > 0;
+            return !( *this == other );
         }
     };
 }
+
 namespace AutoVersion
 {
-    struct Info;
-
     struct Info
     {
         String product;
@@ -88,126 +65,40 @@ namespace AutoVersion
         String description;
 
         Info ()
-        : product()
-        , version()
-        , revision()
-        , date()
-        , time()
-        , vendor()
-        , copyright()
-        , license()
-        , description()
+            : product()
+            , version()
+            , revision()
+            , date()
+            , time()
+            , vendor()
+            , copyright()
+            , license()
+            , description()
         {}
-
-        inline bool operator == ( const Info & other ) const
-        {
-            return product == other.product
-                &&  version == other.version
-                &&  revision == other.revision
-                &&  date == other.date
-                &&  time == other.time
-                &&  vendor == other.vendor
-                &&  copyright == other.copyright
-                &&  license == other.license
-                &&  description == other.description;
-        }
-
-        inline bool operator < ( const Info & other ) const
-        {
-            if ( product < other.product )
-                return true;
-            if ( product > other.product )
-                return false;
-
-            if ( version < other.version )
-                return true;
-            if ( version > other.version )
-                return false;
-
-            if ( revision < other.revision )
-                return true;
-            if ( revision > other.revision )
-                return false;
-
-            if ( date < other.date )
-                return true;
-            if ( date > other.date )
-                return false;
-
-            if ( time < other.time )
-                return true;
-            if ( time > other.time )
-                return false;
-
-            if ( vendor < other.vendor )
-                return true;
-            if ( vendor > other.vendor )
-                return false;
-
-            if ( copyright < other.copyright )
-                return true;
-            if ( copyright > other.copyright )
-                return false;
-
-            if ( license < other.license )
-                return true;
-            if ( license > other.license )
-                return false;
-
-            //if ( description < other.description )
-            //    return true;
-            //if ( description > other.description )
-            //    return false;
-
-            //return false;
-
-            return description < other.description;
-        }
     };
-
-    struct InfoPair
-    {
-        Info build;
-        Info runtime;
-
-        inline bool operator == ( const InfoPair & other ) const
-        {
-            return build == other.build
-                && runtime == other.runtime;
-        }
-
-        inline bool operator < ( const InfoPair & other ) const
-        {
-            if ( build < other.build )
-                return true;
-            return build == other.build
-                && runtime < other.runtime;
-        }
-    };
-
-    typedef ::std::list< InfoPair > InfoPairs;
 }
 
 namespace AutoVersion
 {
+    struct Dependency
+    {
+        Info build;
+        Info runtime;
+    };
+
+    typedef ::std::list< Dependency > Dependencies;
+}
+
+namespace AutoVersion
+{
+    struct Component;
+    typedef ::std::list< Component > Components;
+
     struct Component
     {
-        InfoPair info;
-        InfoPairs dependencies;
-
-        inline bool operator == ( const Component & other ) const
-        {
-            return info == other.info
-                && dependencies == other.dependencies;
-        }
-
-        inline bool operator < ( const Component & other ) const
-        {
-            if ( info < other.info )
-                return true;
-            return info == other.info
-                && dependencies < other.dependencies;
-        }
+        Info info;
+        Dependencies dependencies;
+        Components components;
     };
 
     typedef ::std::list< Component > Components;
@@ -215,7 +106,7 @@ namespace AutoVersion
 
 namespace AutoVersion
 {
-    extern Components components ();
+    extern Component component ();
 }
 
 namespace AutoVersion
@@ -231,24 +122,45 @@ namespace AutoVersion
         };
     };
 
-    inline Status::Enum statusOf ( const InfoPair & value )
+    inline Status::Enum versionStatus ( const Dependency & value )
     {
-        if ( value.build.revision != value.runtime.revision )
+        const Info & build = value.build;
+        const Info & runtime = value.runtime;
+
+        if ( build.revision != runtime.revision )
             return Status::Invalid;
-        if ( value.build == value.runtime )
+
+        if ( build.product == runtime.product
+            && build.version == runtime.version
+            && build.date == runtime.date
+            && build.time == runtime.time
+            && build.vendor == runtime.vendor
+            && build.copyright == runtime.copyright
+            && build.license == runtime.license
+            && build.description == runtime.description )
+        {
             return Status::Valid;
+        }
+
         return Status::Different;
     }
 
-    inline Status::Enum statusOf ( const Component & value )
+    inline Status::Enum versionStatus ( const Component & value )
     {
-        Status::Enum result = statusOf( value.info );
+        Status::Enum result = Status::Valid;
 
         // old C++ support
-        for ( InfoPairs::const_iterator iter = value.dependencies.cbegin();
-            result != Status::Invalid && iter != value.dependencies.cend(); ++iter )
+        for ( Dependencies::const_iterator dep_iter = value.dependencies.cbegin();
+            result != Status::Invalid && dep_iter != value.dependencies.cend(); ++dep_iter )
         {
-            result = ::std::min( result, statusOf( *iter ) );
+            result = ::std::min( result, versionStatus( *dep_iter ) );
+        }
+
+        // old C++ support
+        for ( Components::const_iterator comp_iter = value.components.cbegin();
+            result != Status::Invalid && comp_iter != value.components.cend(); ++comp_iter )
+        {
+            result = ::std::min( result, versionStatus( *comp_iter ) );
         }
 
         return result;

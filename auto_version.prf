@@ -1,7 +1,9 @@
 !equals( TEMPLATE, subdirs ) {
-
     !load( win_export ) : error( Can not find feature \"win_export\" )
-    !load( complex_paths ) : error( Can not find feature \"complex_paths\" )
+    isEmpty( AUTO_VERSION_DIR ) {
+        !load( complex_paths ) : error( Can not find feature \"complex_paths\" )
+        AUTO_VERSION_DIR = "$${GENERATED_FILES_PWD}"
+    }
     !load( module_depends ) : error( Can not find feature \"module_depends\" )
     !load( build_moment ) : error( Can not find feature \"build_moment\" )
 
@@ -44,25 +46,24 @@
     AUTO_VERSION_H_FILE = "$${AUTO_VERSION_PWD}/AutoVersion_p.h"
     AUTO_VERSION_CPP_FILE = "$${AUTO_VERSION_PWD}/AutoVersion_p.cpp"
 
-    # Begin once guard
+
+    # HEADER FILE
     AUTO_VERSION_H_CONTENTS += \
         "$${LITERAL_HASH}pragma once" \
         "$${LITERAL_HASH}ifndef $${AUTO_VERSION_NAMESPACE}_H" \
         "$${LITERAL_HASH}define $${AUTO_VERSION_NAMESPACE}_H" \
-
-    AUTO_VERSION_H_CONTENTS += \
         "//" \
         "$${LITERAL_HASH}include <AutoVersion.h>" \
 
+    # Generation includes of dependencies
     for( depend, LOADED_DEPENDS ) {
-        AUTO_VERSION_H_TEMP_FILE = "$${GENERATED_FILES_PWD}/$${depend}/AutoVersion_p.h"
+        AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION_DIR}/$${depend}/AutoVersion_p.h"
         !isEqual( AUTO_VERSION_H_FILE, $${AUTO_VERSION_H_TEMP_FILE} ) : \
             exists( $${AUTO_VERSION_H_TEMP_FILE} ) : \
                 AUTO_VERSION_H_CONTENTS += \
                     "$${LITERAL_HASH}include \"$${AUTO_VERSION_H_TEMP_FILE}\""
     }
 
-    # Define AUTO_VERSION_EXPORT
     AUTO_VERSION_H_CONTENTS += \
         "//" \
         "$${LITERAL_HASH}ifdef AUTO_VERSION_EXPORT" \
@@ -75,101 +76,34 @@
         "$${LITERAL_HASH}define AUTO_VERSION_EXPORT $${WIN_IMPORT_DECLARE}" \
         "$${LITERAL_HASH}endif // $${AUTO_VERSION_NAMESPACE}_EXPORT" \
         "//" \
-
-    # Begin component namespace
-    AUTO_VERSION_H_CONTENTS += \
+        "namespace $${AUTO_VERSION_NAMESPACE}" \
+        "{" \
+        "    inline ::AutoVersion::Info buildInfo ()" \
+        "    {" \
+        "        ::AutoVersion::Info result;" \
+        "        result.product = \"$${AUTO_VERSION_PRODUCT}\";" \
+        "        result.version = \"$${AUTO_VERSION}\";" \
+        "        result.revision = \"$${AUTO_REVISION}\";" \
+        "        result.date = \"$${BUILD_DATE}\";" \
+        "        result.time = \"$${BUILD_TIME}\";" \
+        "        result.vendor = \"$${AUTO_VERSION_VENDOR}\";" \
+        "        result.copyright = \"$${AUTO_VERSION_COPYRIGHT}\";" \
+        "        result.license = \"$${AUTO_VERSION_LICENSE}\";" \
+        "        result.description = \"$${AUTO_VERSION_DESCRIPTION}\";" \
+        "        return result;" \
+        "    }" \
+        "}" \
         "//" \
         "namespace $${AUTO_VERSION_NAMESPACE}" \
         "{" \
-
-    # Component: runtimes
-    AUTO_VERSION_H_CONTENTS += \
-        "//" \
-        "AUTO_VERSION_EXPORT ::AutoVersion::Info runtimeInfo ();" \
-        "AUTO_VERSION_EXPORT ::AutoVersion::InfoPairs runtimeDependencies ();" \
-
-    # Component: buildInfo
-    AUTO_VERSION_H_CONTENTS += \
-        "//" \
-        "inline ::AutoVersion::Info buildInfo ()" \
-        "{" \
-        "    ::AutoVersion::Info result;" \
-        "    result.product = \"$${AUTO_VERSION_PRODUCT}\";" \
-        "    result.version = \"$${AUTO_VERSION}\";" \
-        "    result.revision = \"$${AUTO_REVISION}\";" \
-        "    result.date = \"$${BUILD_DATE}\";" \
-        "    result.time = \"$${BUILD_TIME}\";" \
-        "    result.vendor = \"$${AUTO_VERSION_VENDOR}\";" \
-        "    result.copyright = \"$${AUTO_VERSION_COPYRIGHT}\";" \
-        "    result.license = \"$${AUTO_VERSION_LICENSE}\";" \
-        "    result.description = \"$${AUTO_VERSION_DESCRIPTION}\";" \
-        "    return result;" \
+        "    AUTO_VERSION_EXPORT ::AutoVersion::Info runtimeInfo ();" \
+        "    AUTO_VERSION_EXPORT ::AutoVersion::Component component ();" \
         "}" \
-
-    # Component: buildDependencies
-    AUTO_VERSION_H_CONTENTS += \
-        "//" \
-        "inline ::AutoVersion::InfoPairs buildDependencies ()" \
-        "{" \
-        "    ::AutoVersion::InfoPairs result;" \
-        "    ::AutoVersion::InfoPair info_pair;" \
-        "    info_pair.build = ::$${AUTO_VERSION_NAMESPACE}::buildInfo();" \
-        "    info_pair.runtime = ::$${AUTO_VERSION_NAMESPACE}::runtimeInfo();" \
-        "    result.insert( info_pair );" \
-
-    for( depend, LOADED_DEPENDS ) {
-        AUTO_VERSION_H_TEMP_FILE = "$${GENERATED_FILES_PWD}/$${depend}/AutoVersion_p.h"
-        AUTO_VERSION_TEMP_NAMESPACE = $${depend}_AutoVersion
-        AUTO_VERSION_TEMP_NAMESPACE = $$replace( AUTO_VERSION_TEMP_NAMESPACE, [$$escape_expand(\\W)], _ )
-        !isEqual( AUTO_VERSION_TEMP_NAMESPACE, $${AUTO_VERSION_NAMESPACE} ) : \
-            exists( $${AUTO_VERSION_H_TEMP_FILE} ) : \
-                AUTO_VERSION_H_CONTENTS += \
-                    "    {::AutoVersion::InfoPairs info_parts = ::$${AUTO_VERSION_TEMP_NAMESPACE}::buildDependencies();" \
-                    "    result.insert( info_parts.cbegin(), info_parts.cend() );}"
-    }
-
-    AUTO_VERSION_H_CONTENTS += \
-        "    return result;" \
-        "}" \
-
-    # Component: components
-    AUTO_VERSION_H_CONTENTS += \
-        "//" \
-        "inline ::AutoVersion::Components components ()" \
-        "{" \
-        "    ::AutoVersion::Component component;" \
-        "    component.info.build = ::$${AUTO_VERSION_NAMESPACE}::buildInfo();" \
-        "    component.info.runtime = ::$${AUTO_VERSION_NAMESPACE}::runtimeInfo();" \
-        "    component.dependencies = ::$${AUTO_VERSION_NAMESPACE}::runtimeDependencies();" \
-        "    ::AutoVersion::Components result;" \
-        "    result.insert( component );" \
-
-    for( depend, LOADED_DEPENDS ) {
-        AUTO_VERSION_H_TEMP_FILE = "$${GENERATED_FILES_PWD}/$${depend}/AutoVersion_p.h"
-        AUTO_VERSION_TEMP_NAMESPACE = $${depend}_AutoVersion
-        AUTO_VERSION_TEMP_NAMESPACE = $$replace( AUTO_VERSION_TEMP_NAMESPACE, [$$escape_expand(\\W)], _ )
-        !isEqual( AUTO_VERSION_TEMP_NAMESPACE, $${AUTO_VERSION_NAMESPACE} ) : \
-            exists( $${AUTO_VERSION_H_TEMP_FILE} ) : \
-                AUTO_VERSION_H_CONTENTS += \
-                    "    {::AutoVersion::Components parts = ::$${AUTO_VERSION_TEMP_NAMESPACE}::components();" \
-                    "    result.insert( parts.cbegin(), parts.cend() );}"
-    }
-
-    AUTO_VERSION_H_CONTENTS += \
-        "    return result;" \
-        "}" \
-
-    # End component namespace
-    AUTO_VERSION_H_CONTENTS += \
-        "}" \
-
-    # End once guard
-    AUTO_VERSION_H_CONTENTS += \
         "//" \
         "$${LITERAL_HASH}endif // $${AUTO_VERSION_NAMESPACE}_H" \
 
 
-    # Begin CPP
+    # SOURCE FILE
     AUTO_VERSION_CPP_CONTENTS += \
         "$${LITERAL_HASH}include \"AutoVersion_p.h\"" \
         "//" \
@@ -181,21 +115,46 @@
         "    {" \
         "        return buildInfo();" \
         "    }" \
+        "}" \
         "//" \
-        "    ::AutoVersion::InfoPairs runtimeDependencies ()" \
+        "namespace $${AUTO_VERSION_NAMESPACE}" \
+        "{" \
+        "    ::AutoVersion::Component component ()" \
         "    {" \
-        "        return buildDependencies();" \
+        "        ::AutoVersion::Component result;" \
+        "        result.info = ::$${AUTO_VERSION_NAMESPACE}::runtimeInfo();" \
+
+    # Generation tree of dependencies
+    for( depend, LOADED_DEPENDS ) {
+        AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION_DIR}/$${depend}/AutoVersion_p.h"
+        AUTO_VERSION_TEMP_NAMESPACE = $${depend}_AutoVersion
+        AUTO_VERSION_TEMP_NAMESPACE = $$replace( AUTO_VERSION_TEMP_NAMESPACE, [$$escape_expand(\\W)], _ )
+        !isEqual( AUTO_VERSION_TEMP_NAMESPACE, $${AUTO_VERSION_NAMESPACE} ) : \
+            exists( $${AUTO_VERSION_H_TEMP_FILE} ) : \
+                AUTO_VERSION_CPP_CONTENTS += \
+                    "        {" \
+                    "            ::AutoVersion::Dependency dependency;" \
+                    "            dependency.build = ::$${AUTO_VERSION_TEMP_NAMESPACE}::buildInfo();" \
+                    "            dependency.runtime = ::$${AUTO_VERSION_TEMP_NAMESPACE}::runtimeInfo();" \
+                    "            result.dependencies.push_back( dependency );" \
+                    "            result.components.push_back( ::$${AUTO_VERSION_TEMP_NAMESPACE}::component() );" \
+                    "        }"
+    }
+
+    AUTO_VERSION_CPP_CONTENTS += \
+        "        return result;" \
         "    }" \
         "}" \
 
+    # SOURCE FILE APP ADDITION
     equals( TEMPLATE, app ) {
         AUTO_VERSION_CPP_CONTENTS += \
             "//" \
             "namespace AutoVersion" \
             "{" \
-            "    ::AutoVersion::Components components ()" \
+            "    ::AutoVersion::Component component ()" \
             "    {" \
-            "        return ::$${AUTO_VERSION_NAMESPACE}::components();" \
+            "        return ::$${AUTO_VERSION_NAMESPACE}::component();" \
             "    }" \
             "}"
     }
