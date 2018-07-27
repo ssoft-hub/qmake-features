@@ -78,7 +78,7 @@
         "//" \
         "namespace $${AUTO_VERSION_NAMESPACE}" \
         "{" \
-        "    inline ::AutoVersion::Info buildInfo ()" \
+        "    inline ::AutoVersion::Info info ()" \
         "    {" \
         "        ::AutoVersion::Info result;" \
         "        result.product = \"$${AUTO_VERSION_PRODUCT}\";" \
@@ -96,8 +96,7 @@
         "//" \
         "namespace $${AUTO_VERSION_NAMESPACE}" \
         "{" \
-        "    AUTO_VERSION_EXPORT ::AutoVersion::Info runtimeInfo ();" \
-        "    AUTO_VERSION_EXPORT ::AutoVersion::Component component ();" \
+        "    AUTO_VERSION_EXPORT ::AutoVersion::Version version ();" \
         "}" \
         "//" \
         "$${LITERAL_HASH}endif // $${AUTO_VERSION_NAMESPACE}_H" \
@@ -111,18 +110,10 @@
         "//" \
         "namespace $${AUTO_VERSION_NAMESPACE}" \
         "{" \
-        "    ::AutoVersion::Info runtimeInfo ()" \
+        "    ::AutoVersion::Version version ()" \
         "    {" \
-        "        return buildInfo();" \
-        "    }" \
-        "}" \
-        "//" \
-        "namespace $${AUTO_VERSION_NAMESPACE}" \
-        "{" \
-        "    ::AutoVersion::Component component ()" \
-        "    {" \
-        "        ::AutoVersion::Component result;" \
-        "        result.info = ::$${AUTO_VERSION_NAMESPACE}::runtimeInfo();" \
+        "        ::AutoVersion::Version result;" \
+        "        result.info = ::$${AUTO_VERSION_NAMESPACE}::info();" \
 
     # Generation tree of dependencies
     for( depend, LOADED_DEPENDS ) {
@@ -134,10 +125,9 @@
                 AUTO_VERSION_CPP_CONTENTS += \
                     "        {" \
                     "            ::AutoVersion::Dependency dependency;" \
-                    "            dependency.build = ::$${AUTO_VERSION_TEMP_NAMESPACE}::buildInfo();" \
-                    "            dependency.runtime = ::$${AUTO_VERSION_TEMP_NAMESPACE}::runtimeInfo();" \
+                    "            dependency.info = ::$${AUTO_VERSION_TEMP_NAMESPACE}::info();" \
+                    "            dependency.version = ::$${AUTO_VERSION_TEMP_NAMESPACE}::version();" \
                     "            result.dependencies.push_back( dependency );" \
-                    "            result.components.push_back( ::$${AUTO_VERSION_TEMP_NAMESPACE}::component() );" \
                     "        }"
     }
 
@@ -152,9 +142,9 @@
             "//" \
             "namespace AutoVersion" \
             "{" \
-            "    ::AutoVersion::Component component ()" \
+            "    ::AutoVersion::Version version ()" \
             "    {" \
-            "        return ::$${AUTO_VERSION_NAMESPACE}::component();" \
+            "        return ::$${AUTO_VERSION_NAMESPACE}::version();" \
             "    }" \
             "}"
     }
