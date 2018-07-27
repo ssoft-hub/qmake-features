@@ -1,9 +1,7 @@
-win* {
+win32* {
     WIN_EXPORT_DECLARE = __declspec(dllexport)
     WIN_IMPORT_DECLARE = __declspec(dllimport)
-}
-
-!win* {
+} else {
     WIN_EXPORT_DECLARE = \"\"
     WIN_IMPORT_DECLARE = \"\"
 }

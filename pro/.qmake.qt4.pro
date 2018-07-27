@@ -17,12 +17,10 @@ isEqual( QT_MAJOR_VERSION, 4 ) {
             break()
         QT5_BASE_PWD = $$dirname( QT5_BASE_PWD )
 
-        win* {
+        win32* {
             CHECK_QT4_BASE_PWD = $$lower( $$QT4_BASE_PWD )
             CHECK_CONF_FILE_PWD = $$lower( $$QMAKE_CONF_FILE_PWD )
-        }
-
-        !win* {
+        } else {
             CHECK_QT4_BASE_PWD = $$QT4_BASE_PWD
             CHECK_CONF_FILE_PWD = $$QMAKE_CONF_FILE_PWD
         }
@@ -40,15 +38,13 @@ isEqual( QT_MAJOR_VERSION, 4 ) {
     # Копирование фитчей в папку, где qmake Qt4 их найдет
     QT4_FEATURES_PATH = "$${QT4_BASE_PWD}/features"
 
-    win* {
+    win32*: {
         MAKE_FEATURES_COMMAND = mkdir \"$${QT4_FEATURES_PATH}\"
         COPY_FEATURES_COMMAND = xcopy /Y /s \"$${QT5_FEATURES_PATH}\" \"$${QT4_FEATURES_PATH}\"
         COPY_CONFIG_COMMAND = copy /Y \"$${QT5_BASE_PWD}\\.qmake.conf\" \"$${QT4_BASE_PWD}\\.qmake.cache\"
-    }
-
-    unix {
+    } else {
         MAKE_FEATURES_COMMAND = mkdir \'$${QT4_FEATURES_PATH}\'
-        COPY_FEATURES_COMMAND = find \'$${QT5_FEATURES_PATH}/\' -iname \'*.prf\' -exec cp \'-f\' \'{}\' \'$${QT4_FEATURES_PATH}/\' \';\'
+        COPY_FEATURES_COMMAND = cp \'-f\' \'-R\' \'$${QT5_FEATURES_PATH}/\' \'$$dirname(QT4_FEATURES_PATH)/\'
         COPY_CONFIG_COMMAND = cp \'-f\' \'$${QT5_BASE_PWD}/.qmake.conf\' \'$${QT4_BASE_PWD}/.qmake.cache\'
     }
 

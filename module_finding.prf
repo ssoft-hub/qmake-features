@@ -42,10 +42,9 @@ defineTest( recursiveDefineDependencyDirectories ) {
 !load( qmake_conf_path ) : error( Can not find feature \"qmake_conf_path\" )
 
 # Попытка загрузить кеш с перечнем модулей
-win* {
+win32* {
     DEPENDS_CACHE_FILE = "$${QMAKE_CONF_FILE_PWD}\\.depends.cache"
-}
-unix {
+} else {
     DEPENDS_CACHE_FILE = "$${QMAKE_CONF_FILE_PWD}/.depends.cache"
 }
 
@@ -86,12 +85,11 @@ contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) \
     # Механизм QMAKE_SUBSTITUTES с параметром .depends.cache.in не работает для msvc,
     # поэтому формирование файла реализовано через echo с перенаправлением в файл.
     message( [$$basename( _PRO_FILE_ )]: Save cached path to $${DEPENDS_CACHE_FILE}. )
-    win* {
+    win32* {
         system( echo DEPEND_PATH = \\> \"$${DEPENDS_CACHE_FILE}\" )
         for( module_path, DEPEND_PATH ) : \
             system( echo \"$${module_path}\" \\>> \"$${DEPENDS_CACHE_FILE}\" )
-    }
-    unix {
+    } else {
         system( echo \'DEPEND_PATH = \\\'> \'$${DEPENDS_CACHE_FILE}\' )
         for( module_path, DEPEND_PATH ) : \
             system( echo \'\"$${module_path}\" \\\'>> \'$${DEPENDS_CACHE_FILE}\' )

@@ -200,8 +200,8 @@ namespace AutoVersion
         Status::Enum result = Status::Valid;
 
         // old C++ support
-        for ( Dependencies::const_iterator iter = value.dependencies.cbegin();
-            result != Status::Invalid && iter != value.dependencies.cend(); ++iter )
+        for ( Dependencies::const_iterator iter = value.dependencies.begin();
+            result != Status::Invalid && iter != value.dependencies.end(); ++iter )
         {
             result = ::std::min( result, versionStatus( *iter ) );
         }
