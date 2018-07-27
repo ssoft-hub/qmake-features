@@ -200,6 +200,9 @@
     SOURCES *= \
         "$${AUTO_VERSION_CPP_FILE}" \
 
+    DEFINES *= \
+        QMAKE_AUTO_VERSION_USED \
+
     unset( AUTO_VERSION_H_FILE )
     unset( AUTO_VERSION_CPP_FILE )
     unset( AUTO_VERSION_H_CONTENTS )
