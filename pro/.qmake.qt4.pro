@@ -16,14 +16,29 @@ isEqual( QT_MAJOR_VERSION, 4 ) {
         isEqual( QT5_BASE_PWD, $${QMAKE_CONF_FILE_PWD} ) : \
             break()
         QT5_BASE_PWD = $$dirname( QT5_BASE_PWD )
-        QT4_BASE_PWD = $$dirname( QT4_BASE_PWD )
+
+        win* {
+            CHECK_QT4_BASE_PWD = $$lower( $$QT4_BASE_PWD )
+            CHECK_CONF_FILE_PWD = $$lower( $$QMAKE_CONF_FILE_PWD )
+        }
+
+        !win* {
+            CHECK_QT4_BASE_PWD = $$QT4_BASE_PWD
+            CHECK_CONF_FILE_PWD = $$QMAKE_CONF_FILE_PWD
+        }
+
+        !isEqual( CHECK_QT4_BASE_PWD, $${CHECK_CONF_FILE_PWD} ) : \
+            QT4_BASE_PWD = $$dirname( QT4_BASE_PWD )
+
+        unset( CHECK_QT4_BASE_PWD )
+        unset( CHECK_CONF_FILE_PWD )
     }
 
     !isEqual( QT5_BASE_PWD, $${QMAKE_CONF_FILE_PWD} ) : \
         error( Can not define paths for Qt4 out. )
 
     # Копирование фитчей в папку, где qmake Qt4 их найдет
-    QT4_FEATURES_PATH = $${QT4_BASE_PWD}/features
+    QT4_FEATURES_PATH = "$${QT4_BASE_PWD}/features"
 
     win* {
         MAKE_FEATURES_COMMAND = mkdir \"$${QT4_FEATURES_PATH}\"
