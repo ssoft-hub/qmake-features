@@ -1,4 +1,4 @@
-isEqual( TEMPLATE, subdirs ) {
+!isEqual( TEMPLATE, subdirs ) {
 
 CONFIG( static ) : \
     AUTO_VERSION_VARIANT = header_only
