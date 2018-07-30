@@ -89,7 +89,7 @@ isEqual( AUTO_VERSION.variant, app ) {
 
         AUTO_VERSION.pwd = "$${AUTO_VERSION.dest_dir}/$${TARGET}"
     } else {
-        AUTO_VERSION.pwd = "$${AUTO_VERSION.dest_dir}/$${MODULE.target_dir}"
+        AUTO_VERSION.pwd = "$${AUTO_VERSION.dest_dir}/$${MODULE.base_dir}"
     }
 } else {
     AUTO_VERSION.pwd = "$${AUTO_VERSION.dest_dir}/$${TARGET}"

@@ -1,6 +1,7 @@
 # Paths of complex and module building
 !load( qmake_conf_path ) : error( Can not find feature \"qmake_conf_path\" )
 
+COMPLEX.pwd= "$${QMAKE_CONF_FILE_PWD}"
 COMPLEX.compiler = $${QMAKE_CC}
 COMPLEX.tool = $$lower( $${MAKEFILE_GENERATOR} )
 COMPLEX.arch = $${QMAKE_HOST.arch}
@@ -10,7 +11,7 @@ isEqual( COMPLEX.compiler, gcc ) {
 }
 
 COMPLEX.qt_version = $${QT_VERSION}
-COMPLEX.id = qt.$${COMPLEX.qt_version}-$${COMPLEX.tool}-$${COMPLEX.compiler}-$${COMPLEX.arch}
+COMPLEX.id = "qt.$${COMPLEX.qt_version}-$${COMPLEX.tool}-$${COMPLEX.compiler}-$${COMPLEX.arch}"
 
 CONFIG( debug, debug|release ) {
     COMPLEX.config = debug
@@ -18,12 +19,12 @@ CONFIG( debug, debug|release ) {
     COMPLEX.config = release
 }
 
-COMPLEX.dest_dir = $${QMAKE_CONF_FILE_PWD}/bin/$${COMPLEX.id}/$${COMPLEX.config}
-COMPLEX.gen_dir = $${QMAKE_CONF_FILE_PWD}/build/$${COMPLEX.id}/$${COMPLEX.config}
+COMPLEX.dest_dir = "$${COMPLEX.pwd}/bin/$${COMPLEX.id}/$${COMPLEX.config}"
+COMPLEX.gen_dir = "$${COMPLEX.pwd}/build/$${COMPLEX.id}/$${COMPLEX.config}"
 
 temp_pwd = $${_PRO_FILE_PWD_}
 check_temp_pwd = $${_PRO_FILE_PWD_}
-check_pwd = $${QMAKE_CONF_FILE_PWD}
+check_pwd = $${COMPLEX.pwd}
 
 win32* {
     check_pwd = $$lower( $${check_pwd} )
@@ -33,28 +34,28 @@ win32* {
 for( tmp, 1..100 ) {
     isEqual( check_temp_pwd, $${check_pwd} ) : \
         break()
-    isEmpty( MODULE.target_dir ) {
-        MODULE.target_dir = $$basename(temp_pwd)
+    isEmpty( MODULE.base_dir ) {
+        MODULE.base_dir = "$$basename(temp_pwd)"
     } else {
-        MODULE.target_dir = $$basename(temp_pwd)/$${MODULE.target_dir}
+        MODULE.base_dir = "$$basename(temp_pwd)/$${MODULE.base_dir}"
     }
-    temp_pwd = $$dirname( temp_pwd )
-    check_temp_pwd = $$dirname( check_temp_pwd )
+    temp_pwd = "$$dirname( temp_pwd )"
+    check_temp_pwd = "$$dirname( check_temp_pwd )"
     isEmpty( check_temp_pwd ) : \
-        error( [$$basename( _PRO_FILE_ )]: This project is not a part of $${QMAKE_CONF_FILE_PWD} complex. )
+        error( [$$basename( _PRO_FILE_ )]: This project is not a part of $${COMPLEX.pwd} complex. )
 }
 
-DESTDIR = $${COMPLEX.dest_dir}
-MODULE.gen_dir = $${COMPLEX.gen_dir}/$${MODULE.target_dir}
+DESTDIR = "$${COMPLEX.dest_dir}"
+MODULE.gen_dir = "$${COMPLEX.gen_dir}/$${MODULE.base_dir}"
 
-LIBS *= -L$${DESTDIR}
+LIBS *= "-L$${DESTDIR}"
 
-OBJECTS_DIR = $${MODULE.gen_dir}/obj
+OBJECTS_DIR = "$${MODULE.gen_dir}/obj"
 # Qt4: mocinclude.tmp find issue
 greaterThan( QT_MAJOR_VERSION, 4 ) : \
-    MOC_DIR = $${MODULE.gen_dir}/moc
-RCC_DIR = $${MODULE.gen_dir}/rcc
-UI_DIR = $${MODULE.gen_dir}/ui
+    MOC_DIR = "$${MODULE.gen_dir}/moc"
+RCC_DIR = "$${MODULE.gen_dir}/rcc"
+UI_DIR = "$${MODULE.gen_dir}/ui"
 
 unset( path_kind )
 unset( temp_pwd )
