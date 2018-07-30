@@ -1,4 +1,5 @@
-# Получение даты и времени
+# Formatted date and time decimal values
+# Alternative of _DATE_
 win32* {
     BUILD_DATE = $$system( date /t )
     BUILD_TIME = $$system( time /T )
