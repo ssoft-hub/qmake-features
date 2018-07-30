@@ -19,8 +19,13 @@ for( tmp, 0..100 ) {
 
     isEqual( TEMP_PREV_MEMBER, "URL:" ) {
         TEMP_LIST = $$split( TEMP_MEMBER, '/' )
-        SVN_VERSION.branch = $${TEMP_MEMBER}
-        SVN_VERSION.version = $$member(TEMP_LIST, 1)
+        SVN_VERSION.branch = $$member(TEMP_LIST, 1)
+        isEqual( SVN_VERSION.branch, "branches" ) | isEqual( SVN_VERSION.branch, "tags" ) {
+            SVN_VERSION.branch = $${SVN_VERSION.branch}/$$member(TEMP_LIST, 2)
+            SVN_VERSION.version = $$member(TEMP_LIST, 2)
+        } else {
+            SVN_VERSION.version = $${SVN_VERSION.branch}
+        }
     }
 
     TEMP_PREV_MEMBER = $${TEMP_MEMBER}
