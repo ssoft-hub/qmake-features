@@ -1,29 +1,63 @@
-# Пути сборки комплекса
-################################################################################
-
-# Поиск общей конфигурации
+# Paths of complex and module building
 !load( qmake_conf_path ) : error( Can not find feature \"qmake_conf_path\" )
 
-# Исправление багов qmake Qt4.
-isEqual( QT_MAJOR_VERSION, 4 ) {
-    TOOL_PATH = qt.$${QT_VERSION}
-} else {
-    TOOL_PATH = qt.$${QT_VERSION}-$$basename(QMAKESPEC)
+COMPLEX.compiler = $${QMAKE_CC}
+COMPLEX.tool = $$lower( $${MAKEFILE_GENERATOR} )
+COMPLEX.arch = $${QMAKE_HOST.arch}
+
+isEqual( COMPLEX.compiler, gcc ) {
+    COMPLEX.compiler = $${COMPLEX.compiler}.$$system("g++ -dumpversion")
 }
+
+COMPLEX.qt_version = $${QT_VERSION}
+COMPLEX.id = qt.$${COMPLEX.qt_version}-$${COMPLEX.tool}-$${COMPLEX.compiler}-$${COMPLEX.arch}
 
 CONFIG( debug, debug|release ) {
-    DESTDIR = $${QMAKE_CONF_FILE_PWD}/bin/$${TOOL_PATH}/debug
-    GENERATED_FILES_PWD=$${QMAKE_CONF_FILE_PWD}/build/$${TOOL_PATH}/debug
+    COMPLEX.config = debug
 } else {
-    DESTDIR = $${QMAKE_CONF_FILE_PWD}/bin/$${TOOL_PATH}/release
-    GENERATED_FILES_PWD=$${QMAKE_CONF_FILE_PWD}/build/$${TOOL_PATH}/release
+    COMPLEX.config = release
 }
 
-GENERATED_FILES_DIR=$${GENERATED_FILES_PWD}/$${TARGET}
+COMPLEX.dest_dir = $${QMAKE_CONF_FILE_PWD}/bin/$${COMPLEX.id}/$${COMPLEX.config}
+COMPLEX.gen_dir = $${QMAKE_CONF_FILE_PWD}/build/$${COMPLEX.id}/$${COMPLEX.config}
+
+temp_pwd = $${_PRO_FILE_PWD_}
+check_temp_pwd = $${_PRO_FILE_PWD_}
+check_pwd = $${QMAKE_CONF_FILE_PWD}
+
+win32* {
+    check_pwd = $$lower( $${check_pwd} )
+    check_temp_pwd = $$lower( $${check_temp_pwd} )
+}
+
+for( tmp, 1..100 ) {
+    isEqual( check_temp_pwd, $${check_pwd} ) : \
+        break()
+    isEmpty( MODULE.target_dir ) {
+        MODULE.target_dir = $$basename(temp_pwd)
+    } else {
+        MODULE.target_dir = $$basename(temp_pwd)/$${MODULE.target_dir}
+    }
+    temp_pwd = $$dirname( temp_pwd )
+    check_temp_pwd = $$dirname( check_temp_pwd )
+    isEmpty( check_temp_pwd ) : \
+        error( [$$basename( _PRO_FILE_ )]: This project is not a part of $${QMAKE_CONF_FILE_PWD} complex. )
+}
+
+DESTDIR = $${COMPLEX.dest_dir}
+MODULE.gen_dir = $${COMPLEX.gen_dir}/$${MODULE.target_dir}
 
 LIBS *= -L$${DESTDIR}
-OBJECTS_DIR = $${GENERATED_FILES_DIR}/obj
-# Qt4: Не находит mocinclude.tmp в нужном месте
-#MOC_DIR = $${GENERATED_FILES_DIR}/moc
-RCC_DIR = $${GENERATED_FILES_DIR}/rcc
-UI_DIR = $${GENERATED_FILES_DIR}/ui
+
+OBJECTS_DIR = $${MODULE.gen_dir}/obj
+# Qt4: mocinclude.tmp find issue
+greaterThan( QT_MAJOR_VERSION, 4 ) : \
+    MOC_DIR = $${MODULE.gen_dir}/moc
+RCC_DIR = $${MODULE.gen_dir}/rcc
+UI_DIR = $${MODULE.gen_dir}/ui
+
+unset( path_kind )
+unset( temp_pwd )
+unset( check_temp_pwd )
+unset( check_pwd )
+unset( tmp )
