@@ -6,27 +6,42 @@
 
 Пути задаются относительно директории расположения общего файла конфигурации .qmake.conf. Месторасположение общего файла конфигурации .qmake.conf находится с помощью фитчи [qmake_conf_path.prf](qmake_conf_path.md), которая помещает значение директории в переменую QMAKE_CONF_FILE_PWD.
 
-Фитча определяет пути для сборки DESTDIR и для генерируемых файлов в виде
+Фитча определяет следующие атрибуты у переменных COMPLEX и MODULE
 
+* COMPLEX.pwd - директория с общим конфигурационным файлом комплекса;
+* COMPLEX.compiler - используемый для сборки комплекса тип компилятора;
+* COMPLEX.tool - инструмент сборки комплекса, в состав которого входит компилятор;
+* COMPLEX.arch - архитектура сборки комплекса (x86/x86_64 и т.п.);
+* COMPLEX.qt_version - используемая версия инструментария Qt;
+* COMPLEX.config - конфигурация сборки комплекса (debug/release);
+* COMPLEX.id - идентификатор пути комплекса в виде суперпозиции атрибутов qt.{qt_version}-{tool}-{compiler}-{arch};
+* COMPLEX.dest_dir - директория сборки комплекса в виде суперпрзиции атрибутов $${pwd}/bin/$${id}/$${config};
+* COMPLEX.gen_dir - директория комплекса с генерируемыми файлами в виде суперпрзиции атрибутов $${pwd}/build/$${id}/$${config};
+* MODULE.base_dir - директория с проектным файлом модуля относительно директории с общим файлом конфигурации;
+* MODULE.gen_dir - директория модуля с генерируемыми файлами (суперпозиция значений COMPLEX.gen_dir и MODULE.base_dir).
+
+Данные атрибуты используются для задания следующих переменных
+
+```pro
+DESTDIR = $${COMPLEX.dest_dir}
+OBJECTS_DIR = $${MODULE.gen_dir}/obj
+MOC_DIR = $${MODULE.gen_dir}/moc
+RCC_DIR = $${MODULE.gen_dir}/rcc
+UI_DIR = $${MODULE.gen_dir}/ui
 ```
-DESTDIR = <base>/bin/qt.<version>-<makespec>/<config>/<target>
-OBJECTS_DIR = <base>/build/qt.<version>-<makespec>/<config>/<target>/obj
-MOC_DIR = <base>/build/qt.<version>-<makespec>/<config>/<target>/moc
-RCC_DIR = <base>/build/qt.<version>-<makespec>/<config>/<target>/rcc
-UI_DIR = <base>/build/qt.<version>-<makespec>/<config>/<target>/ui
-```
 
-* \<base\> - базовая директория (расположения общего файла конфигурации) $${QMAKE_CONF_FILE_PWD}
-* \<version\> - версия Qt $${QT_VERSION}
-* \<makespec\> - профиль сборки Qt $$basename(QMAKESPEC)
-* \<config\> - конфигурация сборки debug|release
-* \<target\> - цель сборки (название компонента) $${TARGET}
-
-В значение переменной LIBS значение переменной DESTDIR задается автоматически.
+Значение переменной DESTDIR в переменную LIBS добавляется автоматически.
 
 ```pro
 LIBS *= -L$${DESTDIR}
 ```
+
+## Сообщения
+
+| Тип        | Сообщение | Описание |
+|------------|-----------|----------|
+| Ошибка     | Can not find feature "qmake_conf_path". | Не найдена фитча qmake_conf_path, необходимая для определения расположения общего файла конфигурации ".qmake.conf". |
+| Ошибка     | This project is not a part of ... complex. | Проект модуля не находится в поддиректории комплекса (относительно расположения общего файла конфигурации ".qmake.conf"). |
 
 ## Зависимости
 
