@@ -1,0 +1,41 @@
+# Если атрибут pwd переменой SVN_VERSION (SVN_VERSION.pwd) не указан явно,
+# то считается, что проектный файл является частью репозитория.
+# Либо можно явно задать значение SVN_VERSION.pwd, если проектный файл
+# не является частью репозитория (например, для проектов 3rdparty).
+
+isEmpty( SVN_VERSION.pwd ) : \
+    SVN_VERSION.pwd = $${_PRO_FILE_PWD_}
+
+SVN_VERSION_CD_COMMAND = "cd \"$${SVN_VERSION.pwd}\" &&"
+
+SVN_VERSION.info = $$system( $${SVN_VERSION_CD_COMMAND} svn info )
+
+for( tmp, 0..100 ) {
+
+    TEMP_MEMBER = $$member(SVN_VERSION.info, $${tmp})
+
+    isEqual( TEMP_PREV_MEMBER, "Rev:" ) : \
+        SVN_VERSION.revision = $${TEMP_MEMBER}
+
+    isEqual( TEMP_PREV_MEMBER, "URL:" ) {
+        TEMP_LIST = $$split( TEMP_MEMBER, '/' )
+        SVN_VERSION.branch = $${TEMP_MEMBER}
+        SVN_VERSION.version = $$member(TEMP_LIST, 1)
+    }
+
+    TEMP_PREV_MEMBER = $${TEMP_MEMBER}
+}
+
+unset( tmp )
+unset( TEMP_LIST )
+unset( TEMP_MEMBER )
+unset( TEMP_PREV_MEMBER )
+
+DEFINES *= SVN_VERSION=\\\"$${SVN_VERSION.version}\\\"
+DEFINES *= SVN_BRANCH=\\\"$${SVN_VERSION.branch}\\\"
+DEFINES *= SVN_REVISION=\\\"$${SVN_VERSION.revision}\\\"
+
+!isEmpty( SVN_VERSION.revision ) : \
+    message( [$$basename( _PRO_FILE_ )]: Svn version of $${TARGET} is $${SVN_VERSION.version}.$${SVN_VERSION.revision} branch: $${SVN_VERSION.branch} )
+
+unset( SVN_VERSION_CD_COMMAND )
