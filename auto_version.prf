@@ -1,35 +1,33 @@
-!isEqual( TEMPLATE, subdirs ) {
+!isEqual( TEMPLATE, subdirs ) : !isEqual( TEMPLATE, vcsubdirs ) {
 
 CONFIG( static ) : \
-    AUTO_VERSION_VARIANT = header_only
+    AUTO_VERSION.variant = header_only
 
 if ( isEqual( TEMPLATE, app ) | isEqual( TEMPLATE, vcapp ) ) : \
-    AUTO_VERSION_VARIANT = app
+    AUTO_VERSION.variant = app
 
-isEmpty( AUTO_VERSION_DIR ) {
+isEmpty( AUTO_VERSION.dest_dir ) {
     !load( complex_paths ) : error( Can not find feature \"complex_paths\" )
-    AUTO_VERSION_DIR = "$${GENERATED_FILES_PWD}"
+    AUTO_VERSION.dest_dir = "$${COMPLEX.gen_dir}/AutoVersion"
 }
+
 !load( module_depends ) : error( Can not find feature \"module_depends\" )
 !load( build_moment ) : error( Can not find feature \"build_moment\" )
 
-isEmpty( AUTO_REVISION ) {
+isEmpty( AUTO_VERSION.revision ) {
     load( git_version )
-    AUTO_VERSION = $${GIT_VERSION}
-    AUTO_REVISION = $${GIT_REVISION}
-    AUTO_BRANCH = $${GIT_BRANCH}
+    AUTO_VERSION.version = $${GIT_VERSION.version}
+    AUTO_VERSION.revision = $${GIT_VERSION.revision}
+    AUTO_VERSION.branch = $${GIT_VERSION.branch}
 }
 
-isEmpty( AUTO_REVISION ) {
+isEmpty( AUTO_VERSION.revision ) {
     load( svn_version )
-    AUTO_VERSION = $${SVN_VERSION}
-    AUTO_REVISION = $${SVN_REVISION}
-    AUTO_BRANCH = $${SVN_BRANCH}
+    AUTO_VERSION.version = $${SVN_VERSION.version}
+    AUTO_VERSION.revision = $${SVN_VERSION.revision}
+    AUTO_VERSION.branch = $${SVN_VERSION.branch}
 }
 
-AUTO_VERSION.version = $${AUTO_VERSION}
-AUTO_VERSION.revision = $${AUTO_REVISION}
-AUTO_VERSION.branch = $${AUTO_BRANCH}
 AUTO_VERSION.date = "$${BUILD_DATE}"
 AUTO_VERSION.time = "$${BUILD_TIME}"
 
@@ -51,26 +49,67 @@ isEmpty( AUTO_VERSION.license ) : \
 isEmpty( AUTO_VERSION.description ) : \
     AUTO_VERSION.description = "$${QMAKE_TARGET_DESCRIPTION}"
 
+TEMP_LIST = $$split( AUTO_VERSION.version, '.' )
 
-AUTO_VERSION_NAMESPACE = $${TARGET}_AutoVersion
-AUTO_VERSION_NAMESPACE = $$replace( AUTO_VERSION_NAMESPACE, [$$escape_expand(\\W)], _ )
-AUTO_VERSION_PWD = "$${AUTO_VERSION_DIR}/$${TARGET}"
+TEMP.major = $$member(TEMP_LIST, 0)
+TEMP.minor = $$member(TEMP_LIST, 1)
+TEMP.patch = $$member(TEMP_LIST, 2)
+
+CHECK.major = $$replace( TEMP.major, [$$escape_expand(\\D)], 0 )
+CHECK.minor = $$replace( TEMP.minor, [$$escape_expand(\\D)], 0 )
+CHECK.patch = $$replace( TEMP.patch, [$$escape_expand(\\D)], 0 )
+
+isEqual( TEMP.major, $${CHECK.major} ) : isEqual( TEMP.minor, $${CHECK.minor} ) : isEqual( TEMP.patch, $${CHECK.patch} ) {
+    AUTO_VERSION.major = $${TEMP.major}
+    AUTO_VERSION.minor = $${TEMP.minor}
+    AUTO_VERSION.patch = $${TEMP.patch}
+}
+
+unset( TEMP )
+unset( CHECK )
+
+isEmpty( AUTO_VERSION.major ) : AUTO_VERSION.major = "1"
+isEmpty( AUTO_VERSION.minor ) : AUTO_VERSION.minor = "0"
+isEmpty( AUTO_VERSION.patch ) : AUTO_VERSION.patch = "0"
+
+greaterThan( QT_MAJOR_VERSION, 4 ) : isEmpty( VERSION ) {
+    CONFIG *= skip_target_version_ext
+    VERSION = $${AUTO_VERSION.major}.$${AUTO_VERSION.minor}.$${AUTO_VERSION.patch}
+}
+
+AUTO_VERSION.namespace = $${TARGET}_AutoVersion
+AUTO_VERSION.namespace = $$replace( AUTO_VERSION.namespace, [$$escape_expand(\\W)], _ )
+
+isEqual( AUTO_VERSION.variant, app ) {
+    # Too large windows paths error
+    win32* {
+        CONFIG -= \
+            object_parallel_to_source \
+            object_with_source \
+
+        AUTO_VERSION.pwd = "$${AUTO_VERSION.dest_dir}/$${TARGET}"
+    } else {
+        AUTO_VERSION.pwd = "$${AUTO_VERSION.dest_dir}/$${MODULE.target_dir}"
+    }
+} else {
+    AUTO_VERSION.pwd = "$${AUTO_VERSION.dest_dir}/$${TARGET}"
+}
 
 win32* {
     AUTO_VERSION_EXPORT_DECLARE = "__declspec(dllexport)"
     AUTO_VERSION_IMPORT_DECLARE = "__declspec(dllimport)"
 }
 
-AUTO_VERSION_H_FILE = "$${AUTO_VERSION_PWD}/AutoVersion_p.h"
-HEADERS *= "$${AUTO_VERSION_H_FILE}"
+AUTO_VERSION.header_file = "$${AUTO_VERSION.pwd}/AutoVersion_p.h"
+HEADERS *= "$${AUTO_VERSION.header_file}"
 
-isEqual( AUTO_VERSION_VARIANT, header_only ) {
-    AUTO_VERSION_CPP_FILE = "$${AUTO_VERSION_H_FILE}"
+isEqual( AUTO_VERSION.variant, header_only ) {
+    AUTO_VERSION.source_file = "$${AUTO_VERSION.header_file}"
     AUTO_VERSION_EXPORT_INLINE = "inline"
 } else {
     AUTO_VERSION_EXPORT_VALUE = "AUTO_VERSION_EXPORT"
-    AUTO_VERSION_CPP_FILE = "$${AUTO_VERSION_PWD}/AutoVersion_p.cpp"
-    SOURCES *= "$${AUTO_VERSION_CPP_FILE}" \
+    AUTO_VERSION.source_file = "$${AUTO_VERSION.pwd}/AutoVersion_p.cpp"
+    SOURCES *= "$${AUTO_VERSION.source_file}" \
 }
 
 tab = $$escape_expand(\\t)
@@ -78,8 +117,8 @@ tab = $$escape_expand(\\t)
 # HEADER FILE
 AUTO_VERSION_H_CONTENTS += \
     "$${LITERAL_HASH}pragma once" \
-    "$${LITERAL_HASH}ifndef $${AUTO_VERSION_NAMESPACE}_H" \
-    "$${LITERAL_HASH}define $${AUTO_VERSION_NAMESPACE}_H" \
+    "$${LITERAL_HASH}ifndef $${AUTO_VERSION.namespace}_H" \
+    "$${LITERAL_HASH}define $${AUTO_VERSION.namespace}_H" \
     "//" \
     "$${LITERAL_HASH}include <AutoVersion.h>" \
     "//" \
@@ -87,13 +126,13 @@ AUTO_VERSION_H_CONTENTS += \
     "$${LITERAL_HASH}undef AUTO_VERSION_EXPORT" \
     "$${LITERAL_HASH}endif // AUTO_VERSION_EXPORT" \
     "//" \
-    "$${LITERAL_HASH}ifdef EXPORT_$${AUTO_VERSION_NAMESPACE}" \
+    "$${LITERAL_HASH}ifdef EXPORT_$${AUTO_VERSION.namespace}" \
     "$${LITERAL_HASH}define AUTO_VERSION_EXPORT $${AUTO_VERSION_EXPORT_DECLARE}" \
     "$${LITERAL_HASH}else" \
     "$${LITERAL_HASH}define AUTO_VERSION_EXPORT $${AUTO_VERSION_IMPORT_DECLARE}" \
-    "$${LITERAL_HASH}endif // $${AUTO_VERSION_NAMESPACE}_EXPORT" \
+    "$${LITERAL_HASH}endif // $${AUTO_VERSION.namespace}_EXPORT" \
     "//" \
-    "namespace $${AUTO_VERSION_NAMESPACE}" \
+    "namespace $${AUTO_VERSION.namespace}" \
     "{" \
     "$${tab}inline ::AutoVersion::Info info ()" \
     "$${tab}{" \
@@ -111,19 +150,19 @@ AUTO_VERSION_H_CONTENTS += \
     "$${tab}}" \
     "}" \
     "//" \
-    "namespace $${AUTO_VERSION_NAMESPACE}" \
+    "namespace $${AUTO_VERSION.namespace}" \
     "{" \
     "$${tab}$${AUTO_VERSION_EXPORT_VALUE} ::AutoVersion::Version version ();" \
     "}" \
     "//" \
 
-AUTO_VERSION_H_CONTENTS_END = "$${LITERAL_HASH}endif // $${AUTO_VERSION_NAMESPACE}_H"
+AUTO_VERSION_H_CONTENTS_END = "$${LITERAL_HASH}endif // $${AUTO_VERSION.namespace}_H"
 
 # SOURCE FILE
 # Generation includes of dependencies
 for( depend, LOADED_DEPENDS ) {
-    AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION_DIR}/$${depend}/AutoVersion_p.h"
-    !isEqual( AUTO_VERSION_H_FILE, $${AUTO_VERSION_H_TEMP_FILE} ) : \
+    AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.dest_dir}/$${depend}/AutoVersion_p.h"
+    !isEqual( AUTO_VERSION.header_file, $${AUTO_VERSION_H_TEMP_FILE} ) : \
         exists( $${AUTO_VERSION_H_TEMP_FILE} ) : \
             AUTO_VERSION_CPP_CONTENTS += \
                 "$${LITERAL_HASH}include \"$${AUTO_VERSION_H_TEMP_FILE}\""
@@ -131,25 +170,25 @@ for( depend, LOADED_DEPENDS ) {
 
 AUTO_VERSION_CPP_CONTENTS += \
     "//" \
-    "$${LITERAL_HASH}define EXPORT_$${AUTO_VERSION_NAMESPACE}" \
+    "$${LITERAL_HASH}define EXPORT_$${AUTO_VERSION.namespace}" \
     "$${LITERAL_HASH}include \"AutoVersion_p.h\"" \
     "//" \
 
 AUTO_VERSION_CPP_CONTENTS += \
     "//" \
-    "namespace $${AUTO_VERSION_NAMESPACE}" \
+    "namespace $${AUTO_VERSION.namespace}" \
     "{" \
     "$${tab}$${AUTO_VERSION_EXPORT_INLINE} ::AutoVersion::Version version ()" \
     "$${tab}{" \
     "$${tab}$${tab}::AutoVersion::Version result;" \
-    "$${tab}$${tab}result.info = ::$${AUTO_VERSION_NAMESPACE}::info();" \
+    "$${tab}$${tab}result.info = ::$${AUTO_VERSION.namespace}::info();" \
 
 # Generation tree of dependencies
 for( depend, LOADED_DEPENDS ) {
-    AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION_DIR}/$${depend}/AutoVersion_p.h"
+    AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.dest_dir}/$${depend}/AutoVersion_p.h"
     AUTO_VERSION_TEMP_NAMESPACE = $${depend}_AutoVersion
     AUTO_VERSION_TEMP_NAMESPACE = $$replace( AUTO_VERSION_TEMP_NAMESPACE, [$$escape_expand(\\W)], _ )
-    !isEqual( AUTO_VERSION_TEMP_NAMESPACE, $${AUTO_VERSION_NAMESPACE} ) : \
+    !isEqual( AUTO_VERSION_TEMP_NAMESPACE, $${AUTO_VERSION.namespace} ) : \
         exists( $${AUTO_VERSION_H_TEMP_FILE} ) : \
             AUTO_VERSION_CPP_CONTENTS += \
                 "$${tab}$${tab}{" \
@@ -166,62 +205,62 @@ AUTO_VERSION_CPP_CONTENTS += \
     "}" \
 
 # SOURCE FILE APP ADDITION
-equals( TEMPLATE, app ) {
+equals( AUTO_VERSION.variant, app ) {
     AUTO_VERSION_CPP_CONTENTS += \
         "//" \
         "namespace AutoVersion" \
         "{" \
         "$${tab}::AutoVersion::Version version ()" \
         "$${tab}{" \
-        "$${tab}$${tab}return ::$${AUTO_VERSION_NAMESPACE}::version();" \
+        "$${tab}$${tab}return ::$${AUTO_VERSION.namespace}::version();" \
         "$${tab}}" \
         "}"
 }
 
-message( [$$basename( _PRO_FILE_ )]: Generate version header file $${AUTO_VERSION_H_FILE}. )
+message( [$$basename( _PRO_FILE_ )]: Generate version header file $${AUTO_VERSION.header_file}. )
 
-!isEqual( AUTO_VERSION_VARIANT, header_only ) : \
-    message( [$$basename( _PRO_FILE_ )]: Generate version source file $${AUTO_VERSION_CPP_FILE}. )
+!isEqual( AUTO_VERSION.variant, header_only ) : \
+    message( [$$basename( _PRO_FILE_ )]: Generate version source file $${AUTO_VERSION.source_file}. )
 
 # Механизм QMAKE_SUBSTITUTES с параметром .depends.cache.in не работает для msvc,
 # поэтому формирование файла реализовано через echo с перенаправлением в файл.
 win32* {
-    !exists( $${AUTO_VERSION_PWD} ) : \
-        system( mkdir \"$${AUTO_VERSION_PWD}\" )
+    !exists( $${AUTO_VERSION.pwd} ) : \
+        system( mkdir \"$${AUTO_VERSION.pwd}\" )
 
-    system( echo // This file was generated by auto_version feature> \"$${AUTO_VERSION_H_FILE}\" )
-    system( echo // This file was generated by auto_version feature> \"$${AUTO_VERSION_CPP_FILE}\" )
+    system( echo // This file was generated by auto_version feature> \"$${AUTO_VERSION.header_file}\" )
+    system( echo // This file was generated by auto_version feature> \"$${AUTO_VERSION.source_file}\" )
 
     for( h_line, AUTO_VERSION_H_CONTENTS ) {
         h_line = $$replace( h_line, "<", "^<" )
         h_line = $$replace( h_line, ">", "^>" )
         h_line = $$replace( h_line, "&", "^&" )
-        system( echo $${h_line}>> \"$${AUTO_VERSION_H_FILE}\" )
+        system( echo $${h_line}>> \"$${AUTO_VERSION.header_file}\" )
     }
 
     for( cpp_line, AUTO_VERSION_CPP_CONTENTS ) {
         cpp_line = $$replace( cpp_line, "<", "^<" )
         cpp_line = $$replace( cpp_line, ">", "^>" )
         cpp_line = $$replace( cpp_line, "&", "^&" )
-        system( echo $${cpp_line}>> \"$${AUTO_VERSION_CPP_FILE}\" )
+        system( echo $${cpp_line}>> \"$${AUTO_VERSION.source_file}\" )
     }
 
-    system( echo $${AUTO_VERSION_H_CONTENTS_END}>> \"$${AUTO_VERSION_H_FILE}\" )
+    system( echo $${AUTO_VERSION_H_CONTENTS_END}>> \"$${AUTO_VERSION.header_file}\" )
 
 } else {
-    !exists( $${AUTO_VERSION_PWD} ) : \
-        system( mkdir \'$${AUTO_VERSION_PWD}\' )
+    !exists( $${AUTO_VERSION.pwd} ) : \
+        system( mkdir \'$${AUTO_VERSION.pwd}\' )
 
-    system( echo \'// This file was generated by auto_version feature\' > \'$${AUTO_VERSION_H_FILE}\' )
-    system( echo \'// This file was generated by auto_version feature\' > \'$${AUTO_VERSION_CPP_FILE}\' )
+    system( echo \'// This file was generated by auto_version feature\' > \'$${AUTO_VERSION.header_file}\' )
+    system( echo \'// This file was generated by auto_version feature\' > \'$${AUTO_VERSION.source_file}\' )
 
     for( h_line, AUTO_VERSION_H_CONTENTS ) : \
-        system( echo \'$${h_line}\' >> \'$${AUTO_VERSION_H_FILE}\' )
+        system( echo \'$${h_line}\' >> \'$${AUTO_VERSION.header_file}\' )
 
     for( cpp_line, AUTO_VERSION_CPP_CONTENTS ) : \
-        system( echo \'$${cpp_line}\' >> \'$${AUTO_VERSION_CPP_FILE}\' )
+        system( echo \'$${cpp_line}\' >> \'$${AUTO_VERSION.source_file}\' )
 
-    system( echo \'$${AUTO_VERSION_H_CONTENTS_END}\' >> \'$${AUTO_VERSION_H_FILE}\' )
+    system( echo \'$${AUTO_VERSION_H_CONTENTS_END}\' >> \'$${AUTO_VERSION.header_file}\' )
 }
 
 INCLUDEPATH *= \
@@ -236,17 +275,12 @@ DEFINES *= \
 unset( tab )
 unset( h_line )
 unset( cpp_line )
-unset( AUTO_VERSION_VARIANT )
-unset( AUTO_VERSION_H_FILE )
-unset( AUTO_VERSION_CPP_FILE )
 unset( AUTO_VERSION_H_CONTENTS )
 unset( AUTO_VERSION_CPP_CONTENTS )
-unset( AUTO_VERSION_NAMESPACE )
 unset( AUTO_VERSION_H_TEMP_FILE )
 unset( AUTO_VERSION_TEMP_NAMESPACE )
 unset( AUTO_VERSION_EXPORT_DECLARE )
 unset( AUTO_VERSION_IMPORT_DECLARE )
 unset( AUTO_VERSION_EXPORT_INLINE )
 unset( AUTO_VERSION_EXPORT_VALUE )
-
 }

@@ -1,26 +1,21 @@
-# Если переменая GIT_PWD не указана явно, то считается, что проектный файл
-# является частью репозитория. Либо можно явно задать значение переменной
-# GIT_PWD, если проектный файл не является частью репозитория (например, для
-# проектов 3rdparty).
+# Если атрибут pwd переменой GIT_VERSION (GIT_VERSION.pwd) не указан явно,
+# то считается, что проектный файл является частью репозитория.
+# Либо можно явно задать значение GIT_VERSION.pwd, если проектный файл
+# не является частью репозитория (например, для проектов 3rdparty).
 
-isEmpty( GIT_PWD ) : \
-    GIT_PWD = $${_PRO_FILE_PWD_}
+isEmpty( GIT_VERSION.pwd ) : \
+    GIT_VERSION.pwd = $${_PRO_FILE_PWD_}
 
-GIT_VERSION_CD_COMMAND = "cd \"$${GIT_PWD}\" &&"
-GIT_VERSION = $$system( $${GIT_VERSION_CD_COMMAND} git describe )
-GIT_BRANCH = $$system( $${GIT_VERSION_CD_COMMAND} git symbolic-ref --short HEAD )
-GIT_REVISION = $$system( $${GIT_VERSION_CD_COMMAND} git rev-parse --short HEAD )
+GIT_VERSION_CD_COMMAND = "cd \"$${GIT_VERSION.pwd}\" &&"
+GIT_VERSION.version = $$system( $${GIT_VERSION_CD_COMMAND} git describe )
+GIT_VERSION.branch = $$system( $${GIT_VERSION_CD_COMMAND} git symbolic-ref --short HEAD )
+GIT_VERSION.revision = $$system( $${GIT_VERSION_CD_COMMAND} git rev-parse --short HEAD )
 
-DEFINES *= GIT_VERSION=\\\"$${GIT_VERSION}\\\"
-DEFINES *= GIT_BRANCH=\\\"$${GIT_BRANCH}\\\"
-DEFINES *= GIT_REVISION=\\\"$${GIT_REVISION}\\\"
+DEFINES *= GIT_VERSION=\\\"$${GIT_VERSION.version}\\\"
+DEFINES *= GIT_BRANCH=\\\"$${GIT_VERSION.branch}\\\"
+DEFINES *= GIT_REVISION=\\\"$${GIT_VERSION.revision}\\\"
 
-message( [$$basename( _PRO_FILE_ )]: Git version of $${TARGET} is $${GIT_VERSION}.$${GIT_REVISION} branch: $${GIT_BRANCH} )
-
-isEmpty( GIT_VERSION ) : \
-    VERSION = $$GIT_VERSION \
-
-CONFIG *= \
-    skip_target_version_ext \
+!isEmpty( GIT_VERSION.revision ) : \
+    message( [$$basename( _PRO_FILE_ )]: Git version of $${TARGET} is $${GIT_VERSION.version}.$${GIT_VERSION.revision} branch: $${GIT_VERSION.branch} )
 
 unset( GIT_VERSION_CD_COMMAND )
