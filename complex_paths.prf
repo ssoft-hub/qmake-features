@@ -4,12 +4,13 @@
 
 COMPLEX.pwd= "$${QMAKE_CONF_FILE_PWD}"
 COMPLEX.compiler = $${QMAKE_CC}
-COMPLEX.tool = $$lower( $${MAKEFILE_GENERATOR} )
-COMPLEX.arch = $${QMAKE_HOST.arch}
+COMPLEX.tool = "$$lower($${MAKEFILE_GENERATOR})"
+COMPLEX.arch = "$${QMAKE_HOST.arch}"
 
-isEqual( COMPLEX.compiler, gcc ) {
-    GCC_VERSION = $$system("g++ -dumpversion")
-    !isEmpty( GCC_VERSION ) : COMPLEX.compiler = $${COMPLEX.compiler}.$${GCC_VERSION}
+contains( COMPLEX.compiler, gcc ) {
+    COMPLEX.compiler = gcc
+    GCC_VERSION = $$system("gcc -dumpversion")
+    !isEmpty( GCC_VERSION ) : COMPLEX.compiler = "$${COMPLEX.compiler}.$${GCC_VERSION}"
 }
 
 COMPLEX.qt_version = $${QT_VERSION}
