@@ -1,21 +1,21 @@
-# Если атрибут pwd переменой GIT_VERSION (GIT_VERSION.pwd) не указан явно,
+# Если атрибут pwd переменой GIT_VERSION (GIT.pwd) не указан явно,
 # то считается, что проектный файл является частью репозитория.
-# Либо можно явно задать значение GIT_VERSION.pwd, если проектный файл
+# Либо можно явно задать значение GIT.pwd, если проектный файл
 # не является частью репозитория (например, для проектов 3rdparty).
 
-isEmpty( GIT_VERSION.pwd ) : \
-    GIT_VERSION.pwd = $${_PRO_FILE_PWD_}
+!load( log_message ) : error( Can not find feature \"log_message\" )
 
-GIT_VERSION_CD_COMMAND = "cd \"$${GIT_VERSION.pwd}\" &&"
-GIT_VERSION.version = $$system( $${GIT_VERSION_CD_COMMAND} git describe )
-GIT_VERSION.branch = $$system( $${GIT_VERSION_CD_COMMAND} git symbolic-ref --short HEAD )
-GIT_VERSION.revision = $$system( $${GIT_VERSION_CD_COMMAND} git rev-parse --short HEAD )
+isEmpty( GIT.pwd ) : \
+    GIT.pwd = $${_PRO_FILE_PWD_}
 
-DEFINES *= GIT_VERSION=\\\"$${GIT_VERSION.version}\\\"
-DEFINES *= GIT_BRANCH=\\\"$${GIT_VERSION.branch}\\\"
-DEFINES *= GIT_REVISION=\\\"$${GIT_VERSION.revision}\\\"
+GIT.version = $$system( cd \"$${GIT.pwd}\" && git describe )
+GIT.branch = $$system( cd \"$${GIT.pwd}\" && git symbolic-ref --short HEAD )
+GIT.revision = $$system( cd \"$${GIT.pwd}\" && git rev-parse --short HEAD )
 
-!isEmpty( GIT_VERSION.revision ) : \
-    message( [$$basename( _PRO_FILE_ )]: Git version of $${TARGET} is $${GIT_VERSION.version}.$${GIT_VERSION.revision} branch: $${GIT_VERSION.branch} )
+DEFINES *= \
+    GIT_VERSION=\\\"$${GIT.version}\\\" \
+    GIT_BRANCH=\\\"$${GIT.branch}\\\" \
+    GIT_REVISION=\\\"$${GIT.revision}\\\" \
 
-unset( GIT_VERSION_CD_COMMAND )
+!isEmpty( GIT.revision ) : \
+    logMessage( Git version of $${TARGET} is $${GIT.version}.$${GIT.revision} branch: $${GIT.branch} )

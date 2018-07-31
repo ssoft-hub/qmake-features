@@ -1,0 +1,16 @@
+# Some of log functions
+
+defineTest( logMessage ) {
+    message( [$$basename( _PRO_FILE_ )]: $${ARGS} )
+    return( true )
+}
+
+defineTest( logWarning ) {
+    warning( [$$basename( _PRO_FILE_ )]: $${ARGS} )
+    return( true )
+}
+
+defineTest( logError ) {
+    error( [$$basename( _PRO_FILE_ )]: $${ARGS} )
+    return( true )
+}

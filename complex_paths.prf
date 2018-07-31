@@ -1,4 +1,5 @@
 # Paths of complex and module building
+!load( log_message ) : error( Can not find feature \"log_message\" )
 !load( qmake_conf_path ) : error( Can not find feature \"qmake_conf_path\" )
 
 COMPLEX.pwd= "$${QMAKE_CONF_FILE_PWD}"
@@ -7,11 +8,14 @@ COMPLEX.tool = $$lower( $${MAKEFILE_GENERATOR} )
 COMPLEX.arch = $${QMAKE_HOST.arch}
 
 isEqual( COMPLEX.compiler, gcc ) {
-    COMPLEX.compiler = $${COMPLEX.compiler}.$$system("g++ -dumpversion")
+    GCC_VERSION = $$system("g++ -dumpversion")
+    !isEmpty( GCC_VERSION ) : COMPLEX.compiler = $${COMPLEX.compiler}.$${GCC_VERSION}
 }
 
 COMPLEX.qt_version = $${QT_VERSION}
-COMPLEX.id = "qt.$${COMPLEX.qt_version}-$${COMPLEX.tool}-$${COMPLEX.compiler}-$${COMPLEX.arch}"
+COMPLEX.base_dir = "qt.$${COMPLEX.qt_version}-$${COMPLEX.tool}-$${COMPLEX.compiler}-$${COMPLEX.arch}"
+
+logMessage( Complex base dir: $${COMPLEX.base_dir} )
 
 CONFIG( debug, debug|release ) {
     COMPLEX.config = debug
@@ -19,8 +23,8 @@ CONFIG( debug, debug|release ) {
     COMPLEX.config = release
 }
 
-COMPLEX.dest_dir = "$${COMPLEX.pwd}/bin/$${COMPLEX.id}/$${COMPLEX.config}"
-COMPLEX.gen_dir = "$${COMPLEX.pwd}/build/$${COMPLEX.id}/$${COMPLEX.config}"
+COMPLEX.dest_dir = "$${COMPLEX.pwd}/bin/$${COMPLEX.base_dir}/$${COMPLEX.config}"
+COMPLEX.gen_dir = "$${COMPLEX.pwd}/build/$${COMPLEX.base_dir}/$${COMPLEX.config}"
 
 temp_pwd = $${_PRO_FILE_PWD_}
 check_temp_pwd = $${_PRO_FILE_PWD_}
@@ -42,7 +46,7 @@ for( tmp, 1..100 ) {
     temp_pwd = "$$dirname( temp_pwd )"
     check_temp_pwd = "$$dirname( check_temp_pwd )"
     isEmpty( check_temp_pwd ) : \
-        error( [$$basename( _PRO_FILE_ )]: This project is not a part of $${COMPLEX.pwd} complex. )
+        logError( This project is not a part of $${COMPLEX.pwd} complex. )
 }
 
 DESTDIR = "$${COMPLEX.dest_dir}"

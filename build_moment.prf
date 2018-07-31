@@ -1,9 +1,12 @@
 # Formatted date and time decimal values
 # Alternative of _DATE_
-win32* {
-    BUILD_DATE = $$system( date /t )
-    BUILD_TIME = $$system( time /T )
-} else {
-    BUILD_DATE = $$system( date "+%d.%m.%Y" )
-    BUILD_TIME = $$system( date "+%H:%M:%S" )
+
+defineReplace(currentDate) {
+    win32* | win64* : return( $$system( date /t ) )
+    return( $$system( date "+%d.%m.%Y" ) )
+}
+
+defineReplace(currentTime) {
+    win32* | win64* : return( $$system( time /T ) )
+    return( $$system( date "+%H:%M:%S" ) )
 }

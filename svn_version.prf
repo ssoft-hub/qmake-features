@@ -1,30 +1,30 @@
-# Если атрибут pwd переменой SVN_VERSION (SVN_VERSION.pwd) не указан явно,
+# Если атрибут pwd переменой SVN_VERSION (SVN.pwd) не указан явно,
 # то считается, что проектный файл является частью репозитория.
-# Либо можно явно задать значение SVN_VERSION.pwd, если проектный файл
+# Либо можно явно задать значение SVN.pwd, если проектный файл
 # не является частью репозитория (например, для проектов 3rdparty).
 
-isEmpty( SVN_VERSION.pwd ) : \
-    SVN_VERSION.pwd = $${_PRO_FILE_PWD_}
+!load( log_message ) : error( Can not find feature \"log_message\" )
 
-SVN_VERSION_CD_COMMAND = "cd \"$${SVN_VERSION.pwd}\" &&"
+isEmpty( SVN.pwd ) : \
+    SVN.pwd = $${_PRO_FILE_PWD_}
 
-SVN_VERSION.info = $$system( $${SVN_VERSION_CD_COMMAND} svn info )
+SVN.info = $$system( cd \"$${SVN.pwd}\" && svn info )
 
 for( tmp, 0..100 ) {
 
-    TEMP_MEMBER = $$member(SVN_VERSION.info, $${tmp})
+    TEMP_MEMBER = $$member(SVN.info, $${tmp})
 
     isEqual( TEMP_PREV_MEMBER, "Rev:" ) : \
-        SVN_VERSION.revision = $${TEMP_MEMBER}
+        SVN.revision = $${TEMP_MEMBER}
 
     isEqual( TEMP_PREV_MEMBER, "URL:" ) {
         TEMP_LIST = $$split( TEMP_MEMBER, '/' )
-        SVN_VERSION.branch = $$member(TEMP_LIST, 1)
-        isEqual( SVN_VERSION.branch, "branches" ) | isEqual( SVN_VERSION.branch, "tags" ) {
-            SVN_VERSION.branch = $${SVN_VERSION.branch}/$$member(TEMP_LIST, 2)
-            SVN_VERSION.version = $$member(TEMP_LIST, 2)
+        SVN.branch = $$member(TEMP_LIST, 1)
+        isEqual( SVN.branch, "branches" ) | isEqual( SVN.branch, "tags" ) {
+            SVN.branch = $${SVN.branch}/$$member(TEMP_LIST, 2)
+            SVN.version = $$member(TEMP_LIST, 2)
         } else {
-            SVN_VERSION.version = $${SVN_VERSION.branch}
+            SVN.version = $${SVN.branch}
         }
     }
 
@@ -36,11 +36,10 @@ unset( TEMP_LIST )
 unset( TEMP_MEMBER )
 unset( TEMP_PREV_MEMBER )
 
-DEFINES *= SVN_VERSION=\\\"$${SVN_VERSION.version}\\\"
-DEFINES *= SVN_BRANCH=\\\"$${SVN_VERSION.branch}\\\"
-DEFINES *= SVN_REVISION=\\\"$${SVN_VERSION.revision}\\\"
+DEFINES *= \
+    SVN_VERSION=\\\"$${SVN.version}\\\" \
+    SVN_BRANCH=\\\"$${SVN.branch}\\\" \
+    SVN_REVISION=\\\"$${SVN.revision}\\\" \
 
-!isEmpty( SVN_VERSION.revision ) : \
-    message( [$$basename( _PRO_FILE_ )]: Svn version of $${TARGET} is $${SVN_VERSION.version}.$${SVN_VERSION.revision} branch: $${SVN_VERSION.branch} )
-
-unset( SVN_VERSION_CD_COMMAND )
+!isEmpty( SVN.revision ) : \
+    logMessage( Svn version of $${TARGET} is $${SVN.version}.$${SVN.revision} branch: $${SVN.branch} )

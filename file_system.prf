@@ -1,0 +1,71 @@
+# Some of functionality exists in Qt5 initially.
+# This functions work fo Qt4 and Qt5.
+
+!load( log_message ) : error( Can not find feature \"log_message\" )
+
+# Make directory with subdirectories.
+defineTest( makeDirectory ) {
+    exists( "$${ARGS}" ) : \
+        return( true )
+
+    win32* | win64* {
+        COMMAND = "mkdir \"$${ARGS}\""
+    } else {
+        COMMAND = "mkdir \'-p\' \'$${ARGS}\'"
+    }
+    !system( "$${COMMAND}" ) {
+        logMessage( "System command: \"$${COMMAND}\"" )
+        logError( "Can not make directory \"$${ARGS}\"" )
+        return( false )
+    }
+    return( true )
+}
+
+# Make empty file with directories if it needed.
+defineTest( makeFile ) {
+    DIR_NAME = $$dirname( ARGS )
+    FILE_NAME = $$basename( ARGS )
+
+    makeDirectory( "$${DIR_NAME}" )
+
+    win32* | win64* {
+        COMMAND = "copy /Y NUL \"$${ARGS}\""
+    } else {
+        COMMAND = ":> \'$${ARGS}\'"
+    }
+    !system( "$${COMMAND}" ) {
+        logMessage( "System command: \"$${COMMAND}\"" )
+        logError( "Can not create file \"$${ARGS}\"" )
+        return( false )
+    }
+    return( true )
+}
+
+# Append lines to file
+defineTest( appendToFile ) {
+    for( arg, ARGS ) {
+        isEmpty( FILE_PATH ) {
+            FILE_PATH = "$${arg}"
+        } else {
+
+            win32* | win64* {
+                #arg = $$replace( arg, "^", "^^" )
+                #arg = $$replace( arg, "|", "^|" )
+                arg = $$replace( arg, "<", "^<" )
+                arg = $$replace( arg, ">", "^>" )
+                arg = $$replace( arg, "&", "^&" )
+
+                COMMAND = "echo $${arg}>> \"$${FILE_PATH}\""
+            } else {
+                COMMAND = "echo \'$${arg}\' >> \'$${FILE_PATH}\'"
+            }
+            !system( "$${COMMAND}" ) {
+                logMessage( "System command: \"$${COMMAND}\"" )
+                logError( "Can not append anything to file \"$${ARGS}\"" )
+                return( false )
+            }
+            return( true )
+        }
+    }
+    return( true )
+}

@@ -1,5 +1,6 @@
 # Modules finding ...
-load( module_finding )
+!load( log_message ) : error( Can not find feature \"log_message\" )
+!load( module_finding ) : error( Can not find feature \"module_finding\" )
 
 defineTest( loadDependency ) {
     for( module, ARGS ) {
@@ -12,11 +13,11 @@ defineTest( loadDependency ) {
                 break()
         }
         exists( $${project_entry} ) {
-            message( [$$basename( _PRO_FILE_ )]: Load dependency $${module} from \"$${project_entry}\" )
+            logMessage( Load dependency $${module} from \"$${project_entry}\" )
             include( $${project_entry} )
         } else {
             !isEqual( TARGET, $${module} ) : \
-                error( [$$basename( _PRO_FILE_ )]: Can not resolve dependency $${module} )
+                logError( Can not resolve dependency $${module} )
         }
     }
 
@@ -82,7 +83,7 @@ defineTest( loadDependencies ) {
 
     # Resolve dependencies
     if ( !isEmpty( DEPENDS ) ) {
-        message( [$$basename( _PRO_FILE_ )]: Dependencies resolving ... )
+        logMessage( Dependencies resolving ... )
         MODULE = $$basename(_PRO_FILE_)
         $${MODULE}.depends = $${DEPENDS}
         loadDependency( $${DEPENDS} )
