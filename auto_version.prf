@@ -141,8 +141,8 @@ AUTO_VERSION_H_CONTENTS += \
     "$${tab}{" \
     "$${tab}$${tab}::AutoVersion::Info result;" \
     "$${tab}$${tab}result.product = \"$${AUTO_VERSION.product}\";" \
-    "$${tab}$${tab}result.version = \"$${AUTO_VERSION}\";" \
-    "$${tab}$${tab}result.revision = \"$${AUTO_REVISION}\";" \
+    "$${tab}$${tab}result.version = \"$${AUTO_VERSION.version}\";" \
+    "$${tab}$${tab}result.revision = \"$${AUTO_VERSION.revision}\";" \
     "$${tab}$${tab}result.date = \"$${AUTO_VERSION.date}\";" \
     "$${tab}$${tab}result.time = \"$${AUTO_VERSION.time}\";" \
     "$${tab}$${tab}result.vendor = \"$${AUTO_VERSION.vendor}\";" \
