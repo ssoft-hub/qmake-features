@@ -1,4 +1,4 @@
-!load( log_message ) : error( Can not find feature \"log_message\" )
+!load( message_logging ) : error( Can not find feature \"message_logging\" )
 
 defineTest( appendDependencyDirectories ) {
     unset( DEPEND_PATH_LAYER )
@@ -60,7 +60,7 @@ contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) : \
     # При наличии файла
     exists( $${DEPENDS_CACHE_FILE} ) {
         # Зачитываем
-        logMessage( Load cached path from $${DEPENDS_CACHE_FILE}. )
+        messageLogging( Load cached path from $${DEPENDS_CACHE_FILE}. )
         include( $${DEPENDS_CACHE_FILE} )
     } else {
         # или помечаем, что не используем кэш
@@ -77,7 +77,7 @@ contains( DEPENDS_CACHE_CONFIG, unuse_depends_cache ) \
 
     # Выводим сообщения о найденных модулях
     for( subdir, DEPEND_PATH ) {
-        logMessage( Find modules into: $${subdir} )
+        messageLogging( Find modules into: $${subdir} )
     }
 }
 
@@ -86,8 +86,8 @@ contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) \
 {
     # Механизм QMAKE_SUBSTITUTES с параметром .depends.cache.in не работает для msvc,
     # поэтому формирование файла реализовано через echo с перенаправлением в файл.
-    logMessage( Save cached path to $${DEPENDS_CACHE_FILE}. )
-    makeFile( "$${DEPENDS_CACHE_FILE}" )
+    messageLogging( Save cached path to $${DEPENDS_CACHE_FILE}. )
+    makeEmptyFile( "$${DEPENDS_CACHE_FILE}" )
     appendToFile( "$${DEPENDS_CACHE_FILE}", "DEPEND_PATH = \\" )
     for( module_path, DEPEND_PATH ) : \
         appendToFile( "$${DEPENDS_CACHE_FILE}", "$${module_path} \\" )

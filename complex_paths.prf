@@ -1,5 +1,5 @@
 # Paths of complex and module building
-!load( log_message ) : error( Can not find feature \"log_message\" )
+!load( message_logging ) : error( Can not find feature \"message_logging\" )
 !load( qmake_conf_path ) : error( Can not find feature \"qmake_conf_path\" )
 
 COMPLEX.pwd= "$${QMAKE_CONF_FILE_PWD}"
@@ -16,7 +16,7 @@ contains( COMPLEX.compiler, gcc ) {
 COMPLEX.qt_version = $${QT_VERSION}
 COMPLEX.base_dir = "qt.$${COMPLEX.qt_version}-$${COMPLEX.tool}-$${COMPLEX.compiler}-$${COMPLEX.arch}"
 
-logMessage( Complex base dir: $${COMPLEX.base_dir} )
+messageLogging( Complex base dir: $${COMPLEX.base_dir} )
 
 CONFIG( debug, debug|release ) {
     COMPLEX.config = debug
@@ -47,7 +47,7 @@ for( tmp, 1..100 ) {
     temp_pwd = "$$dirname( temp_pwd )"
     check_temp_pwd = "$$dirname( check_temp_pwd )"
     isEmpty( check_temp_pwd ) : \
-        logError( This project is not a part of $${COMPLEX.pwd} complex. )
+        errorLogging( This project is not a part of $${COMPLEX.pwd} complex. )
 }
 
 DESTDIR = "$${COMPLEX.dest_dir}"

@@ -1,13 +1,25 @@
 # Тип проекта
 TEMPLATE = subdirs
+CONFIG =
 
 # Исправление багов qmake Qt4.
 isEqual( QT_MAJOR_VERSION, 4 ) {
 
     QT5_FEATURES_PATH = $$dirname( PWD )
 
-    # Явное включение содержимого фитчи qmake_conf_path
-    !include( $${PWD}/../qmake_conf_path.prf ) : error( Can not include feature \"qmake_conf_path\" )
+    QMAKE_CONF_FILE_PWD = "$${_PRO_FILE_PWD_}"
+    QMAKE_CONF_FILE_PWD = "$$replace( QMAKE_CONF_FILE_PWD, "\\\\", "/" )"
+    for( tmp, 1..100 ) {
+        QMAKE_CONF_FILE = "$${QMAKE_CONF_FILE_PWD}/.qmake.conf"
+        exists( $${QMAKE_CONF_FILE} ) : \
+            break()
+        unset( QMAKE_CONF_FILE )
+        QMAKE_CONF_FILE_PWD = $$dirname( QMAKE_CONF_FILE_PWD )
+    }
+
+    # Проверяем, что .qmake.conf найден
+    !exists( $${QMAKE_CONF_FILE} ) : \
+        error( The file \".qmake.conf\" not found. )
 
     QT5_BASE_PWD = $${PWD}
     QT4_BASE_PWD = $${OUT_PWD}
@@ -49,7 +61,7 @@ isEqual( QT_MAJOR_VERSION, 4 ) {
     }
 
     !exists( $${QT4_FEATURES_PATH} ) {
-        logMessage( Make features path: $${MAKE_FEATURES_COMMAND} )
+        message( [$$basename( _PRO_FILE_ )]: Make features path: $${MAKE_FEATURES_COMMAND} )
         !system( $${MAKE_FEATURES_COMMAND} ): \
             error( [$$basename( _PRO_FILE_ )]: Can not make features path )
     } else {

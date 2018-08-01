@@ -1,7 +1,7 @@
 # Some of functionality exists in Qt5 initially.
 # This functions work fo Qt4 and Qt5.
 
-!load( log_message ) : error( Can not find feature \"log_message\" )
+!load( message_logging ) : error( Can not find feature \"message_logging\" )
 
 # Make directory with subdirectories.
 defineTest( makeDirectory ) {
@@ -14,15 +14,15 @@ defineTest( makeDirectory ) {
         COMMAND = "mkdir \'-p\' \'$${ARGS}\'"
     }
     !system( "$${COMMAND}" ) {
-        logMessage( "System command: \"$${COMMAND}\"" )
-        logError( "Can not make directory \"$${ARGS}\"" )
+        messageLogging( "System command: \"$${COMMAND}\"" )
+        errorLogging( "Can not make directory \"$${ARGS}\"" )
         return( false )
     }
     return( true )
 }
 
 # Make empty file with directories if it needed.
-defineTest( makeFile ) {
+defineTest( makeEmptyFile ) {
     DIR_NAME = $$dirname( ARGS )
     FILE_NAME = $$basename( ARGS )
 
@@ -34,8 +34,8 @@ defineTest( makeFile ) {
         COMMAND = ":> \'$${ARGS}\'"
     }
     !system( "$${COMMAND}" ) {
-        logMessage( "System command: \"$${COMMAND}\"" )
-        logError( "Can not create file \"$${ARGS}\"" )
+        messageLogging( "System command: \"$${COMMAND}\"" )
+        errorLogging( "Can not create file \"$${ARGS}\"" )
         return( false )
     }
     return( true )
@@ -60,12 +60,45 @@ defineTest( appendToFile ) {
                 COMMAND = "echo \'$${arg}\' >> \'$${FILE_PATH}\'"
             }
             !system( "$${COMMAND}" ) {
-                logMessage( "System command: \"$${COMMAND}\"" )
-                logError( "Can not append anything to file \"$${ARGS}\"" )
+                messageLogging( "System command: \"$${COMMAND}\"" )
+                errorLogging( "Can not append anything to file \"$${ARGS}\"" )
                 return( false )
             }
             return( true )
         }
     }
     return( true )
+}
+
+# Find direcrory with value
+# example: findUpperDirectoryWith( /home/user/working, bin )
+defineReplace( findUpperDirectoryWith ) {
+    FIND_NAME = "$$1"
+    BASE_NAME = "$$2"
+
+    !isEmpty( $$3 ) {
+        errorLogging( "A lot of input parameters - method \"upperDirectoryWith\"" )
+        return(0)
+    }
+
+    isEmpty( FIND_NAME ) {
+        errorLogging( "The name of find object is not inputted" )
+        return(0)
+    }
+
+    isEmpty( BASE_NAME ) {
+        errorLogging( "The base directory is not inputted" )
+        return(0)
+    }
+
+    for( tmp, 1..100 ) {
+        TEST_NAME = "$${BASE_NAME}/$${FIND_NAME}"
+        exists( $${TEST_NAME} ) : \
+            break()
+        BASE_NAME = "$$dirname( BASE_NAME )"
+        isEmpty( BASE_NAME ) : \
+            break()
+    }
+
+    return("$${BASE_NAME}")
 }

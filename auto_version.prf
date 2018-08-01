@@ -1,4 +1,4 @@
-!load( log_message ) : error( Can not find feature \"log_message\" )
+!load( message_logging ) : error( Can not find feature \"message_logging\" )
 !load( file_system ) : error( Can not find feature \"file_system\" )
 
 !contains( TEMPLATE, .*subdirs ) {
@@ -10,22 +10,22 @@ contains( TEMPLATE, .*app ) : \
     AUTO_VERSION.variant = app
 
 isEmpty( AUTO_VERSION.dest_dir ) {
-    !load( complex_paths ) : logError( "Can not find feature \"complex_paths\"" )
+    !load( complex_paths ) : errorLogging( "Can not find feature \"complex_paths\"" )
     AUTO_VERSION.dest_dir = "$${COMPLEX.gen_dir}/AutoVersion"
 }
 
-!load( module_depends ) : logError( "Can not find feature \"module_depends\"" )
-!load( build_moment ) : logError( "Can not find feature \"build_moment\"" )
+!load( module_depends ) : errorLogging( "Can not find feature \"module_depends\"" )
+!load( build_moment ) : errorLogging( "Can not find feature \"build_moment\"" )
 
 isEmpty( AUTO_VERSION.revision ) {
-    !load( git_version ) : logError( "Can not find feature \"git_version\"" )
+    !load( git_version ) : errorLogging( "Can not find feature \"git_version\"" )
     AUTO_VERSION.version = $${GIT.version}
     AUTO_VERSION.revision = $${GIT.revision}
     AUTO_VERSION.branch = $${GIT.branch}
 }
 
 isEmpty( AUTO_VERSION.revision ) {
-    !load( svn_version ) : logError( "Can not find feature \"svn_version\"" )
+    !load( svn_version ) : errorLogging( "Can not find feature \"svn_version\"" )
     AUTO_VERSION.version = $${SVN.version}
     AUTO_VERSION.revision = $${SVN.revision}
     AUTO_VERSION.branch = $${SVN.branch}
@@ -220,14 +220,14 @@ equals( AUTO_VERSION.variant, app ) {
         "}"
 }
 
-logMessage( Generate version header file $${AUTO_VERSION.header_file}. )
+messageLogging( Generate version header file $${AUTO_VERSION.header_file}. )
 !isEqual( AUTO_VERSION.variant, header_only ) : \
-    logMessage( Generate version source file $${AUTO_VERSION.source_file}. )
+    messageLogging( Generate version source file $${AUTO_VERSION.source_file}. )
 
 # Механизм QMAKE_SUBSTITUTES с параметром .depends.cache.in не работает для msvc,
 # поэтому формирование файла реализовано через echo с перенаправлением в файл.
-makeFile( "$${AUTO_VERSION.header_file}" )
-makeFile( "$${AUTO_VERSION.source_file}" )
+makeEmptyFile( "$${AUTO_VERSION.header_file}" )
+makeEmptyFile( "$${AUTO_VERSION.source_file}" )
 
 appendToFile( "$${AUTO_VERSION.header_file}", $${AUTO_VERSION_H_CONTENTS} )
 appendToFile( "$${AUTO_VERSION.source_file}", $${AUTO_VERSION_CPP_CONTENTS} )

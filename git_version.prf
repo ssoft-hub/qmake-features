@@ -1,21 +1,25 @@
-# Если атрибут pwd переменой GIT_VERSION (GIT.pwd) не указан явно,
-# то считается, что проектный файл является частью репозитория.
-# Либо можно явно задать значение GIT.pwd, если проектный файл
-# не является частью репозитория (например, для проектов 3rdparty).
+# Если атрибут GIT.pwd не указан явно, то считается, что проектный файл
+# является частью репозитория. Либо можно явно задать значение GIT.pwd,
+# если проектный файл не является частью репозитория (например, для проектов 3rdparty).
 
-!load( log_message ) : error( Can not find feature \"log_message\" )
+!load( message_logging ) : error( Can not find feature \"message_logging\" )
+!load( file_system ) : error( Can not find feature \"file_system\" )
 
 isEmpty( GIT.pwd ) : \
     GIT.pwd = $${_PRO_FILE_PWD_}
+GIT.pwd = $$findUpperDirectoryWith( ".git", "$${GIT.pwd}" )
 
-GIT.version = $$system( cd \"$${GIT.pwd}\" && git describe )
-GIT.branch = $$system( cd \"$${GIT.pwd}\" && git symbolic-ref --short HEAD )
-GIT.revision = $$system( cd \"$${GIT.pwd}\" && git rev-parse --short HEAD )
+!isEmpty( GIT.pwd ) {
+    GIT.version = $$system( cd \"$${GIT.pwd}\" && git describe )
+    GIT.branch = $$system( cd \"$${GIT.pwd}\" && git symbolic-ref --short HEAD )
+    GIT.revision = $$system( cd \"$${GIT.pwd}\" && git rev-parse --short HEAD )
 
-DEFINES *= \
-    GIT_VERSION=\\\"$${GIT.version}\\\" \
-    GIT_BRANCH=\\\"$${GIT.branch}\\\" \
-    GIT_REVISION=\\\"$${GIT.revision}\\\" \
+    !isEmpty( GIT.revision ) {
+        messageLogging( Git version of $${TARGET} is \"$${GIT.version}\" \(SHA1: $${GIT.revision}\) branch: \"$${GIT.branch}\". )
 
-!isEmpty( GIT.revision ) : \
-    logMessage( Git version of $${TARGET} is $${GIT.version}.$${GIT.revision} branch: $${GIT.branch} )
+        DEFINES *= \
+            GIT_VERSION=\\\"$${GIT.version}\\\" \
+            GIT_BRANCH=\\\"$${GIT.branch}\\\" \
+            GIT_REVISION=\\\"$${GIT.revision}\\\" \
+    }
+}

@@ -3,43 +3,48 @@
 # Либо можно явно задать значение SVN.pwd, если проектный файл
 # не является частью репозитория (например, для проектов 3rdparty).
 
-!load( log_message ) : error( Can not find feature \"log_message\" )
+!load( message_logging ) : error( Can not find feature \"message_logging\" )
+!load( file_system ) : error( Can not find feature \"file_system\" )
 
 isEmpty( SVN.pwd ) : \
     SVN.pwd = $${_PRO_FILE_PWD_}
 
-SVN.info = $$system( cd \"$${SVN.pwd}\" && svn info )
+SVN.pwd = $$findUpperDirectoryWith( ".svn", "$${SVN.pwd}" )
 
-for( tmp, 0..100 ) {
+!isEmpty( SVN.pwd ) {
+    SVN.info = $$system( cd \"$${SVN.pwd}\" && svn info )
 
-    TEMP_MEMBER = $$member(SVN.info, $${tmp})
+    for( tmp, 0..100 ) {
 
-    isEqual( TEMP_PREV_MEMBER, "Rev:" ) : \
-        SVN.revision = $${TEMP_MEMBER}
+        TEMP_MEMBER = $$member(SVN.info, $${tmp})
 
-    isEqual( TEMP_PREV_MEMBER, "URL:" ) {
-        TEMP_LIST = $$split( TEMP_MEMBER, '/' )
-        SVN.branch = $$member(TEMP_LIST, 1)
-        isEqual( SVN.branch, "branches" ) | isEqual( SVN.branch, "tags" ) {
-            SVN.branch = $${SVN.branch}/$$member(TEMP_LIST, 2)
-            SVN.version = $$member(TEMP_LIST, 2)
-        } else {
-            SVN.version = $${SVN.branch}
+        isEqual( TEMP_PREV_MEMBER, "Rev:" ) : \
+            SVN.revision = $${TEMP_MEMBER}
+
+        isEqual( TEMP_PREV_MEMBER, "URL:" ) {
+            TEMP_LIST = $$split( TEMP_MEMBER, '/' )
+            SVN.branch = $$member(TEMP_LIST, 1)
+            isEqual( SVN.branch, "branches" ) | isEqual( SVN.branch, "tags" ) {
+                SVN.branch = $${SVN.branch}/$$member(TEMP_LIST, 2)
+                SVN.version = $$member(TEMP_LIST, 2)
+            } else {
+                SVN.version = $${SVN.branch}
+            }
         }
+
+        TEMP_PREV_MEMBER = $${TEMP_MEMBER}
     }
 
-    TEMP_PREV_MEMBER = $${TEMP_MEMBER}
+    unset( tmp )
+    unset( TEMP_LIST )
+    unset( TEMP_MEMBER )
+    unset( TEMP_PREV_MEMBER )
+
+    DEFINES *= \
+        SVN_VERSION=\\\"$${SVN.version}\\\" \
+        SVN_BRANCH=\\\"$${SVN.branch}\\\" \
+        SVN_REVISION=\\\"$${SVN.revision}\\\" \
+
+    !isEmpty( SVN.revision ) : \
+        messageLogging( Svn version of $${TARGET} is $${SVN.version}.$${SVN.revision} branch: $${SVN.branch} )
 }
-
-unset( tmp )
-unset( TEMP_LIST )
-unset( TEMP_MEMBER )
-unset( TEMP_PREV_MEMBER )
-
-DEFINES *= \
-    SVN_VERSION=\\\"$${SVN.version}\\\" \
-    SVN_BRANCH=\\\"$${SVN.branch}\\\" \
-    SVN_REVISION=\\\"$${SVN.revision}\\\" \
-
-!isEmpty( SVN.revision ) : \
-    logMessage( Svn version of $${TARGET} is $${SVN.version}.$${SVN.revision} branch: $${SVN.branch} )
