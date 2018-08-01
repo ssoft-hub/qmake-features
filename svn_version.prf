@@ -46,5 +46,5 @@ SVN.pwd = $$findUpperDirectoryWith( ".svn", "$${SVN.pwd}" )
         SVN_REVISION=\\\"$${SVN.revision}\\\" \
 
     !isEmpty( SVN.revision ) : \
-        messageLogging( Svn version of $${TARGET} is $${SVN.version}.$${SVN.revision} branch: $${SVN.branch} )
+        messageLogging( Svn version of $${TARGET} is $${SVN.version}, revision is $${SVN.revision}, branch is $${SVN.branch}. )
 }
