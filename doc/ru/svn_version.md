@@ -58,7 +58,7 @@ std::cout
 
 | Тип        | Сообщение | Описание |
 |------------|-----------|----------|
-| Информация | Svn version of $${TARGET} is $${SVN.version}, revision is $${SVN.revision}), branch is $${SVN.branch}. | Извлеченная информация о версии, ревизии и ветки локалього репозитория svn. |
+| Информация | Svn version of $${TARGET} \($${SVN.pwd}\) is $${SVN.version}, revision is $${SVN.revision}), branch is $${SVN.branch}. | Извлеченная информация о версии, ревизии и ветки локалього репозитория svn. |
 
 ## Зависимости
 

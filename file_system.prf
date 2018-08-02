@@ -71,34 +71,109 @@ defineTest( appendToFile ) {
 }
 
 # Find direcrory with value
-# example: findUpperDirectoryWith( /home/user/working, bin )
+# example: findUpperDirectoryWith( bin, /home/user/working )
 defineReplace( findUpperDirectoryWith ) {
-    FIND_NAME = "$$1"
-    BASE_NAME = "$$2"
+    result =
 
-    !isEmpty( $$3 ) {
-        errorLogging( "A lot of input parameters - method \"upperDirectoryWith\"" )
-        return(0)
+    item = "$$1"
+    isEmpty( item ) {
+        errorLogging( "[findUpperDirectoryWith] - The name of item is empty." )
+        return("$${result})
     }
 
-    isEmpty( FIND_NAME ) {
-        errorLogging( "The name of find object is not inputted" )
-        return(0)
-    }
-
-    isEmpty( BASE_NAME ) {
-        errorLogging( "The base directory is not inputted" )
-        return(0)
+    result = $$2
+    isEmpty( result ) {
+        errorLogging( "[findUpperDirectoryWith] - The base directory is empty" )
+        return("$${result}")
     }
 
     for( tmp, 1..100 ) {
-        TEST_NAME = "$${BASE_NAME}/$${FIND_NAME}"
-        exists( $${TEST_NAME} ) : \
+        test_value = "$${result}/$${item}"
+        exists( $${test_value} ) : \
             break()
-        BASE_NAME = "$$dirname( BASE_NAME )"
-        isEmpty( BASE_NAME ) : \
+        result = "$$dirname( result )"
+        isEmpty( result ) : \
             break()
     }
 
-    return("$${BASE_NAME}")
+    return("$${result}")
+}
+
+# Test path on relative or absolute value
+defineTest( isRelativePath ) {
+    return( false )
+}
+
+defineReplace( absolutePath ) {
+    return(0)
+}
+
+defineReplace( relativePath ) {
+    return(0)
+}
+
+defineReplace( cleanPath ) {
+    return(0)
+}
+
+defineReplace( commonPathForTwoPaths ) {
+    result =
+
+    first_path = "$$1"
+    isEmpty( first_path ) {
+        errorLogging( "[commonPathForTwoPaths] - The first path is empty." )
+        return("$${result}")
+    }
+    isRelativePath( $$first_path ) {
+        errorLogging( "[commonPathForTwoPaths] - The first path is relative." )
+        return("$${result}")
+    }
+
+    second_path = "$$2"
+    isEmpty( second_path ) {
+        errorLogging( "[commonPathForTwoPaths] - The second path is empty." )
+        return("$${result}")
+    }
+    isRelativePath( $$second_path ) {
+        errorLogging( "[commonPathForTwoPaths] - The second path is relative." )
+        return("$${result}")
+    }
+
+    first_list = $$split( first_path, "/" )
+    second_list = $$split( second_path, "/" )
+
+    for( i, 0..100 ) {
+        first_value = $$member( first_list, $${i} )
+        second_value = $$member( second_list, $${i} )
+        isEmpty( first_value ) | !isEqual( first_value, "$${second_value}" ) : \
+            break()
+         win32* | win64* {
+            isEmpty( result ) {
+                result = "$${first_value}"
+            } else {
+                result = "$${result}/$${first_value}"
+            }
+        } else {
+            result = "$${result}/$${first_value}"
+        }
+
+    }
+    return( "$${result}" )
+}
+
+defineReplace( commonPathForPaths ) {
+    result =
+    relative_prefix = $${_PRO_FILE_PWD_}
+
+    for( path, ARGS ) {
+        isRelativePath( "$${path}" ) : \
+            path = "$${relative_prefix}/$${path}"
+
+        isEmpty( result ) {
+            result = "$$dirname( path )"
+        } else {
+            result = "$$commonPathForTwoPaths( "$${result}", "$$dirname( path )" )"
+        }
+    }
+    return( "$${result}" )
 }

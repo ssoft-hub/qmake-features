@@ -7,9 +7,7 @@
 !load( file_system ) : error( Can not find feature \"file_system\" )
 
 isEmpty( SVN.pwd ) : \
-    SVN.pwd = $${_PRO_FILE_PWD_}
-
-SVN.pwd = $$findUpperDirectoryWith( ".svn", "$${SVN.pwd}" )
+    SVN.pwd = $$commonDirectoryForSources()
 
 !isEmpty( SVN.pwd ) {
     SVN.info = $$system( cd \"$${SVN.pwd}\" && svn info )
@@ -46,5 +44,5 @@ SVN.pwd = $$findUpperDirectoryWith( ".svn", "$${SVN.pwd}" )
         SVN_REVISION=\\\"$${SVN.revision}\\\" \
 
     !isEmpty( SVN.revision ) : \
-        messageLogging( Svn version of $${TARGET} is $${SVN.version}, revision is $${SVN.revision}, branch is $${SVN.branch}. )
+        messageLogging( Svn version of $${TARGET} \($${SVN.pwd}\) is $${SVN.version}, revision is $${SVN.revision}, branch is $${SVN.branch} )
 }

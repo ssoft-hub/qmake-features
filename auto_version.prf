@@ -112,7 +112,7 @@ isEqual( AUTO_VERSION.variant, header_only ) {
 } else {
     AUTO_VERSION_EXPORT_VALUE = "AUTO_VERSION_EXPORT"
     AUTO_VERSION.source_file = "$${AUTO_VERSION.pwd}/AutoVersion_p.cpp"
-    SOURCES *= "$${AUTO_VERSION.source_file}" \
+    SOURCES *= "$${AUTO_VERSION.source_file}"
 }
 
 tab = $$escape_expand(\\t)

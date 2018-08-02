@@ -1,3 +1,6 @@
+!load( file_system ) : error( Can not find feature \"file_system\" )
+!load( message_logging ) : error( Can not find feature \"message_logging\" )
+
 # Сооставлят список поддиректорий до 10 уровней вложености
 ################################################################################
 
@@ -90,4 +93,41 @@ defineTest( includeFiles ) {
     export( DISTFILES )
 
     return( true )
+}
+
+defineReplace( privateJoinCommonDirectory ) {
+    common = "$$1"
+    dir = "$$2"
+
+    isEmpty( common ) {
+        common = "$${dir}"
+        return( $${common} )
+    }
+
+    !isEmpty( dir ) {
+        common = "$$commonPathForTwoPaths( "$${common}", "$${dir}" )"
+    }
+    return( "$${common}" )
+}
+
+
+# Находит общую базовую директорию для всех файлов исходников
+defineReplace( commonDirectoryForSources ) {
+    common =
+    dir = $$commonPathForPaths( $${HEADERS} )
+    common = "$$privateJoinCommonDirectory( "$${common}", "$${dir}" )"
+    dir = $$commonPathForPaths( $${SOURCES} )
+    common = "$$privateJoinCommonDirectory( "$${common}", "$${dir}" )"
+    dir = $$commonPathForPaths( $${LEXSOURCES} )
+    common = "$$privateJoinCommonDirectory( "$${common}", "$${dir}" )"
+    dir = $$commonPathForPaths( $${RES_FILE} )
+    common = "$$privateJoinCommonDirectory( "$${common}", "$${dir}" )"
+    dir = $$commonPathForPaths( $${RESOURCES} )
+    common = "$$privateJoinCommonDirectory( "$${common}", "$${dir}" )"
+    dir = $$commonPathForPaths( $${TRANSLATIONS} )
+    common = "$$privateJoinCommonDirectory( "$${common}", "$${dir}" )"
+    dir = $$commonPathForPaths( $${DISTFILES} )
+    common = "$$privateJoinCommonDirectory( "$${common}", "$${dir}" )"
+
+    return( "$${common}" )
 }

@@ -60,7 +60,7 @@ std::cout
 
 | Тип        | Сообщение | Описание |
 |------------|-----------|----------|
-| Информация | Git version of $${TARGET} is $${GIT.version}, SHA1 revision is $${GIT.revision}), branch is $${GIT.branch} | Извлеченная информация о версии, ревизии и ветки локалього репозитория git. |
+| Информация | Git version of $${TARGET} \($${SVN.pwd}\) is $${GIT.version}, SHA1 revision is $${GIT.revision}), branch is $${GIT.branch} | Извлеченная информация о версии, ревизии и ветки локалього репозитория git. |
 
 ## Зависимости
 

@@ -6,8 +6,7 @@
 !load( file_system ) : error( Can not find feature \"file_system\" )
 
 isEmpty( GIT.pwd ) : \
-    GIT.pwd = $${_PRO_FILE_PWD_}
-GIT.pwd = $$findUpperDirectoryWith( ".git", "$${GIT.pwd}" )
+    GIT.pwd = $$commonDirectoryForSources()
 
 !isEmpty( GIT.pwd ) {
     GIT.version = $$system( cd \"$${GIT.pwd}\" && git describe )
@@ -15,7 +14,7 @@ GIT.pwd = $$findUpperDirectoryWith( ".git", "$${GIT.pwd}" )
     GIT.revision = $$system( cd \"$${GIT.pwd}\" && git rev-parse --short HEAD )
 
     !isEmpty( GIT.revision ) {
-        messageLogging( Git version of $${TARGET} is \"$${GIT.version}\", SHA1 revision is $${GIT.revision}, branch is \"$${GIT.branch}\". )
+        messageLogging( Git version of $${TARGET} \($${GIT.pwd}\) is $${GIT.version}, revision is $${GIT.revision}, branch is $${GIT.branch} )
 
         DEFINES *= \
             GIT_VERSION=\\\"$${GIT.version}\\\" \
