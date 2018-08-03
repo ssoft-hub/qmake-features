@@ -14,8 +14,8 @@ defineTest( addSubdirs ) {
             sub_entries = $$files( $${entry}/* )
 
             !isEmpty( sub_entries ) {
-                !contains( __RESOLVED_DIRS__, $${entry} ) {
-                    __RESOLVED_DIRS__ *= $${entry}
+                !contains( __RESOLVED_DIRS__, "$${entry}" ) {
+                    __RESOLVED_DIRS__ *= "$${entry}"
                     result = true
                 }
             }
@@ -26,7 +26,7 @@ defineTest( addSubdirs ) {
 }
 
 defineTest( addSubdirsRecursive ) {
-    for( tmp, 1..10 ) {
+    for( tmp, 0..100 ) {
         !addSubdirs( $${__RESOLVED_DIRS__} ) : break()
     }
     export ( __RESOLVED_DIRS__ )
@@ -38,7 +38,7 @@ defineTest( addSubdirsRecursive ) {
 
 defineTest( includeFilesFrom ) {
 
-    dir = $${ARGS}
+    dir = "$${ARGS}"
     entries = $$files( $${dir}/* )
 
     isEmpty( entries ) {
@@ -75,7 +75,7 @@ defineTest( includeFilesFrom ) {
 
 defineTest( includeFiles ) {
 
-    __RESOLVED_DIRS__ = $${ARGS}
+    __RESOLVED_DIRS__ = "$${ARGS}"
 
     addSubdirsRecursive()
 

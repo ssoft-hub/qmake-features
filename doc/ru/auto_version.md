@@ -97,33 +97,53 @@ A           версия a1(a1)a1     ok
 А также перечисляемый признак и методы определения корректности версии.
 
 * Status::Enum - статус версии
-- Invalid - существует разница между значением build-time и run-time в значении ревизии (revision) в дереве версий компонента.
-- Different - существует разница между значением build-time и run-time  в любой информации, за исключением значения ревизии, в дереве версий компонента.
-- Valid -  build-time и run-time информация идентична в дереве версий компонента.
+    * Invalid - существует разница между значением build-time и run-time в значении ревизии (revision) в дереве версий компонента.
+    * Different - существует разница между значением build-time и run-time  в любой информации, за исключением значения ревизии, в дереве версий компонента.
+    * Valid -  build-time и run-time информация идентична в дереве версий компонента.
 * Status::Enum versionStatus ( const Dependency & value ) - метод проверки статуса зависимости.
 * Status::Enum versionStatus ( const Version & value ) - метод проверки статуса версионного дерева.
 
 Фитча определяет следующие атрибуты у переменных COMPLEX и MODULE
 
-* AUTO_VERSION.variant - (header_only|app)
-* AUTO_VERSION.dest_dir -
-* AUTO_VERSION.version -
-* AUTO_VERSION.revision -
-* AUTO_VERSION.branch -
-* AUTO_VERSION.date -
-* AUTO_VERSION.time -
-* AUTO_VERSION.product -
-* AUTO_VERSION.vendor -
-* AUTO_VERSION.copyright -
-* AUTO_VERSION.license -
-* AUTO_VERSION.description -
-* AUTO_VERSION.major -
-* AUTO_VERSION.minor -
-* AUTO_VERSION.patch -
-* AUTO_VERSION.namespace -
-* AUTO_VERSION.pwd -
-* AUTO_VERSION.header_file -
-* AUTO_VERSION.source_file -
+* AUTO_VERSION.variant - вариант правила формирования заголовочного и исходного файла.
+    * Пустое значение означает генерацию и заголовочного, и исходного файла.
+    * header_only значение означает генерацию только заголовочного файла с inline реализацией.
+    * app значение означает добавление реализации для метода ::AutoVersion::Version ::AutoVersion::version ();.
+* AUTO_VERSION.gen_dir - директория, в которую генерируются файлы учета версий AutoVersion_p.h и AutoVersion_p.cpp для всех проектов.
+* AUTO_VERSION.pwd - путь к директории с файлами учета версий AutoVersion_p.h и AutoVersion_p.cpp для данного проекта.
+    * Предполагается, что проект не содержит одноименных библиотек (так как иначе будет иметь место неоднозначность определения зависимостей),
+    поэтому путь к директории для библиотеки формируется в виде $${AUTO_VERSION.gen_dir}/$${TARGET}.
+    * Также предполагается возможность наличия одноименных приложений, поэтому путь к директории для приложений формируется в виде
+    "$${AUTO_VERSION.gen_dir}/$${MODULE.base_dir}", MODULE.base_dir - путь к проектному файлу приложения относительно конфигурации комплекса.
+* AUTO_VERSION.header_file - путь к заголовочному файлу учета версий $${AUTO_VERSION.pwd}/AutoVersion_p.h.
+* AUTO_VERSION.source_file - путь к исходному файлу учета версий $${AUTO_VERSION.pwd}/AutoVersion_p.cpp.
+    * В случае варианта AUTO_VERSION.variant равного app, содержит значение AUTO_VERSION.header_file.
+* AUTO_VERSION.namespace - пространство имен C++, используемое для реализации методов учета версий.
+* AUTO_VERSION.version - текстовое представление версии компонента.
+* AUTO_VERSION.revision - текстовое представление о ревизии компонента (номер, SHA1 или т.д.).
+* AUTO_VERSION.branch - текстовое представление о ветке компонента.
+* AUTO_VERSION.date - текстовое представление даты сборки в формате DD.MM.YYYY.
+* AUTO_VERSION.time - текстовое представление о времени сборки в формате hh:mm:ss.
+* AUTO_VERSION.product - наименование продукта.
+    * Если значение не задано явно, то подставляется значение переменной QMAKE_TARGET_PRODUCT.
+    * Если $${QMAKE_TARGET_PRODUCT} не задан, то подставляется значение переменной TARGET.
+* AUTO_VERSION.vendor - наименование производителя.
+    * Если значение не задано явно, то подставляется значение переменной QMAKE_TARGET_COMPANY.
+* AUTO_VERSION.copyright - интелектуальное право.
+    * Если значение не задано явно, то подставляется значение переменной QMAKE_TARGET_COPYRIGHT.
+* AUTO_VERSION.license - вид лицензирования.
+    * Если значение не задано явно, то подставляется значение переменной QMAKE_TARGET_LICENSE.
+* AUTO_VERSION.description - краткое описание продукта.
+    * Если значение не задано явно, то подставляется значение переменной QMAKE_TARGET_DESCRIPTION.
+* AUTO_VERSION.major - цифровое значение мажорной версии продукта.
+    * Если значение версии AUTO_VERSION.version имеет вид 1.\*, v.1.\*, v1.\* (\* - любой набор символов), то цифровое значение будет извлечено.
+    Иначе AUTO_VERSION.major присваивается значение 1.
+* AUTO_VERSION.minor - цифровое значение минорной версии продукта.
+    * Если значение версии AUTO_VERSION.version имеет вид 1.2.\*, v.1.2.\*, v1.2.\* (\* - любой набор символов), то цифровое значение будет извлечено.
+    Иначе AUTO_VERSION.minor присваивается значение 0.
+* AUTO_VERSION.patch - цифровое значение номера патча.
+    * Если значение версии AUTO_VERSION.version имеет вид 1.2.3\*, v.1.2.3\*, v1.2.3\* (\* - любой набор символов), то цифровое значение будет извлечено.
+    Иначе AUTO_VERSION.patch присваивается значение 0.
 
 Данные атрибуты используются для задания следующих переменных
 
@@ -133,6 +153,12 @@ DEFINES *= QMAKE_AUTO_VERSION_USED
 VERSION = $${AUTO_VERSION.major}.$${AUTO_VERSION.minor}.$${AUTO_VERSION.patch}
 HEADERS *= "$${AUTO_VERSION.header_file}"
 SOURCES *= "$${AUTO_VERSION.source_file}"
+```
+
+Чтобы исключить добавление номера мажорной версии к имени исполняемого модуля, задается значение
+
+```pro
+CONFIG *= skip_target_version_ext
 ```
 
 ## Процесс генерации
@@ -164,7 +190,7 @@ namespace ComponentName_AutoVersion
 	{
 		::AutoVersion::Info result;
 		result.product = "ComponentName";
-		result.version = "";
+		result.version = "v1.2.3-55e687c";
 		result.revision = "55e687c";
 		result.date = "02.08.2018";
 		result.time = "14:38";
@@ -241,6 +267,80 @@ void foo ()
 }
 ```
 
+Полное дерево версий может быть выведено, например, с помощью такого кода
+
+```cpp
+#ifdef QMAKE_AUTO_VERSION_USED
+
+#include <AutoVersion.h>
+#include <iostream>
+
+using namespace ::std;
+using namespace ::AutoVersion;
+
+void printHeader ();
+void printInfo ( int level, const Info & info );
+void printVersion ( int level, const Version & version );
+void printDependencies ( int level, const Dependencies & dependencies );
+
+void printHeader ()
+{
+    cout
+        << "----------------------------------------------------------------------------------------------------" << endl
+        << "| Status | Product | Version | Revision | Date | Time | Vendor | Copyright | License | Description |" << endl
+        << "----------------------------------------------------------------------------------------------------" << endl;
+}
+
+void printInfo ( int level, const Info & info )
+{
+    for ( int i = 0; i < level; ++i )
+        cout << ( i == level - 1 ? "+-" : "| " );
+    cout << "| "; if ( info.product ) cout << info.product.c_str;
+    cout << " | "; if ( info.version ) cout << info.version.c_str;
+    cout << " | "; if ( info.revision ) cout << info.revision.c_str;
+    cout << " | "; if ( info.date ) cout << info.date.c_str;
+    cout << " | "; if ( info.time ) cout << info.time.c_str;
+    cout << " | "; if ( info.vendor ) cout << info.vendor.c_str;
+    cout << " | "; if ( info.copyright ) cout << info.copyright.c_str;
+    cout << " | "; if ( info.license ) cout << info.license.c_str;
+    cout << " | "; if ( info.description ) cout << info.description.c_str;
+    cout << " |" << endl;
+}
+
+void printDependencies ( int level, const Dependencies & dependencies )
+{
+    Dependencies::const_iterator iter = dependencies.begin();
+    while ( iter != dependencies.end() )
+    {
+        cout << "    ";
+        printInfo( level + 1, (*iter).info );       // build-time info
+        printVersion( level + 1, (*iter).version ); // run-time version
+        ++iter;
+    }
+}
+
+void printVersion ( int level, const Version & version )
+{
+    switch ( versionStatus( version ) )
+    {
+    case Status::Valid: cout << "VAL "; break;
+    case Status::Different: cout << "DIF "; break;
+    case Status::Invalid: cout << "INV "; break;
+    }
+
+    printInfo( level, version.info );                   // version info
+    printDependencies( level, version.dependencies );   // version dependencies
+}
+
+void printVersion ()
+{
+    Version version = ::AutoVersion::version();
+    printVersion( 0, version );
+}
+
+#endif
+```
+
 ## Сообщения
 
 | Тип        | Сообщение | Описание |
@@ -252,6 +352,6 @@ void foo ()
 ## Зависимости
 
 * [complex_paths.prf](complex_paths.md)
-* [complex_paths.prf](module_depends.md)
-* [complex_paths.prf](git_version.md)
-* [complex_paths.prf](svn_version.md)
+* [module_depends.prf](module_depends.md)
+* [git_version.prf](git_version.md)
+* [svn_version.prf](svn_version.md)

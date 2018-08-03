@@ -14,7 +14,7 @@ isEmpty( GIT.pwd ) : \
     GIT.revision = $$system( cd \"$${GIT.pwd}\" && git rev-parse --short HEAD )
 
     !isEmpty( GIT.revision ) {
-        messageLogging( Git version of $${TARGET} \($${GIT.pwd}\) is $${GIT.version}, revision is $${GIT.revision}, branch is $${GIT.branch} )
+        messageLogging( "Git version of $${TARGET} \($${GIT.pwd}\) is \"$${GIT.version}\", revision is \"$${GIT.revision}\", branch is \"$${GIT.branch}\"." )
 
         DEFINES *= \
             GIT_VERSION=\\\"$${GIT.version}\\\" \

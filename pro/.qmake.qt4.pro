@@ -9,7 +9,7 @@ isEqual( QT_MAJOR_VERSION, 4 ) {
 
     QMAKE_CONF_FILE_PWD = "$${_PRO_FILE_PWD_}"
     QMAKE_CONF_FILE_PWD = "$$replace( QMAKE_CONF_FILE_PWD, "\\\\", "/" )"
-    for( tmp, 1..100 ) {
+    for( tmp, 0..100 ) {
         QMAKE_CONF_FILE = "$${QMAKE_CONF_FILE_PWD}/.qmake.conf"
         exists( $${QMAKE_CONF_FILE} ) : \
             break()
@@ -24,7 +24,7 @@ isEqual( QT_MAJOR_VERSION, 4 ) {
     QT5_BASE_PWD = $${PWD}
     QT4_BASE_PWD = $${OUT_PWD}
 
-    for( index, 1..100 ) {
+    for( index, 0..100 ) {
         isEqual( QT5_BASE_PWD, $${QMAKE_CONF_FILE_PWD} ) : \
             break()
         QT5_BASE_PWD = $$dirname( QT5_BASE_PWD )

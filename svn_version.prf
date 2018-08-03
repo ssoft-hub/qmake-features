@@ -44,5 +44,5 @@ isEmpty( SVN.pwd ) : \
         SVN_REVISION=\\\"$${SVN.revision}\\\" \
 
     !isEmpty( SVN.revision ) : \
-        messageLogging( Svn version of $${TARGET} \($${SVN.pwd}\) is $${SVN.version}, revision is $${SVN.revision}, branch is $${SVN.branch} )
+        messageLogging( "Svn version of $${TARGET} \($${SVN.pwd}\) is \"$${SVN.version}\", revision is \"$${SVN.revision}\", branch is \"$${SVN.branch}\"." )
 }

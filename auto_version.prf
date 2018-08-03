@@ -3,15 +3,17 @@
 
 !contains( TEMPLATE, .*subdirs ) {
 
+AUTO_VERSION.version =
+
 CONFIG( static ) : \
     AUTO_VERSION.variant = header_only
 
 contains( TEMPLATE, .*app ) : \
     AUTO_VERSION.variant = app
 
-isEmpty( AUTO_VERSION.dest_dir ) {
+isEmpty( AUTO_VERSION.gen_dir ) {
     !load( complex_paths ) : errorLogging( "Can not find feature \"complex_paths\"" )
-    AUTO_VERSION.dest_dir = "$${COMPLEX.gen_dir}/AutoVersion"
+    AUTO_VERSION.gen_dir = "$${COMPLEX.gen_dir}/AutoVersion"
 }
 
 !load( module_depends ) : errorLogging( "Can not find feature \"module_depends\"" )
@@ -54,13 +56,21 @@ isEmpty( AUTO_VERSION.description ) : \
 
 TEMP_LIST = $$split( AUTO_VERSION.version, '.' )
 
-TEMP.major = $$member(TEMP_LIST, 0)
-TEMP.minor = $$member(TEMP_LIST, 1)
-TEMP.patch = $$member(TEMP_LIST, 2)
+TEMP.first = $$lower( $$member(TEMP_LIST, 0) )
+isEqual( TEMP.first, "v" ) {
+    TEMP.major = $$lower( $$member(TEMP_LIST, 1) )
+    TEMP.minor = $$member(TEMP_LIST, 2)
+    TEMP.patch = $$member(TEMP_LIST, 3)
+} else {
+    TEMP.major = $$lower( $$member(TEMP_LIST, 0) )
+    TEMP.major = $$replace( TEMP.major, "v", "" )
+    TEMP.minor = $$member(TEMP_LIST, 1)
+    TEMP.patch = $$member(TEMP_LIST, 2)
+}
 
-CHECK.major = $$replace( TEMP.major, [$$escape_expand(\\D)], 0 )
-CHECK.minor = $$replace( TEMP.minor, [$$escape_expand(\\D)], 0 )
-CHECK.patch = $$replace( TEMP.patch, [$$escape_expand(\\D)], 0 )
+CHECK.major = $$replace( TEMP.major, [$$escape_expand(\\D)], "0" )
+CHECK.minor = $$replace( TEMP.minor, [$$escape_expand(\\D)], "0" )
+CHECK.patch = $$replace( TEMP.patch, [$$escape_expand(\\D)], "0" )
 
 isEqual( TEMP.major, $${CHECK.major} ) : isEqual( TEMP.minor, $${CHECK.minor} ) : isEqual( TEMP.patch, $${CHECK.patch} ) {
     AUTO_VERSION.major = $${TEMP.major}
@@ -90,12 +100,12 @@ isEqual( AUTO_VERSION.variant, app ) {
             object_parallel_to_source \
             object_with_source \
 
-        AUTO_VERSION.pwd = "$${AUTO_VERSION.dest_dir}/$${TARGET}"
+        AUTO_VERSION.pwd = "$${AUTO_VERSION.gen_dir}/$${TARGET}"
     } else {
-        AUTO_VERSION.pwd = "$${AUTO_VERSION.dest_dir}/$${MODULE.base_dir}"
+        AUTO_VERSION.pwd = "$${AUTO_VERSION.gen_dir}/$${MODULE.base_dir}"
     }
 } else {
-    AUTO_VERSION.pwd = "$${AUTO_VERSION.dest_dir}/$${TARGET}"
+    AUTO_VERSION.pwd = "$${AUTO_VERSION.gen_dir}/$${TARGET}"
 }
 
 win32* | win64* {
@@ -164,7 +174,7 @@ AUTO_VERSION_H_CONTENTS_END = "$${LITERAL_HASH}endif // $${AUTO_VERSION.namespac
 # SOURCE FILE
 # Generation includes of dependencies
 for( depend, LOADED_DEPENDS ) {
-    AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.dest_dir}/$${depend}/AutoVersion_p.h"
+    AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.gen_dir}/$${depend}/AutoVersion_p.h"
     !isEqual( AUTO_VERSION.header_file, $${AUTO_VERSION_H_TEMP_FILE} ) : \
         exists( $${AUTO_VERSION_H_TEMP_FILE} ) : \
             AUTO_VERSION_CPP_CONTENTS += \
@@ -188,7 +198,7 @@ AUTO_VERSION_CPP_CONTENTS += \
 
 # Generation tree of dependencies
 for( depend, LOADED_DEPENDS ) {
-    AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.dest_dir}/$${depend}/AutoVersion_p.h"
+    AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.gen_dir}/$${depend}/AutoVersion_p.h"
     AUTO_VERSION_TEMP_NAMESPACE = $${depend}_AutoVersion
     AUTO_VERSION_TEMP_NAMESPACE = $$replace( AUTO_VERSION_TEMP_NAMESPACE, [$$escape_expand(\\W)], _ )
     !isEqual( AUTO_VERSION_TEMP_NAMESPACE, $${AUTO_VERSION.namespace} ) : \

@@ -31,7 +31,7 @@ defineTest( appendDependencyDirectories ) {
 
 defineTest( recursiveDefineDependencyDirectories ) {
     DEPEND_PATH_LAYER = $${DEPEND_PATH}
-    for( layer, 1..100 ) {
+    for( layer, 0..100 ) {
         !appendDependencyDirectories( $${DEPEND_PATH_LAYER} ) : \
             break()
     }

@@ -36,7 +36,7 @@ win32* {
     check_temp_pwd = $$lower( $${check_temp_pwd} )
 }
 
-for( tmp, 1..100 ) {
+for( tmp, 0..100 ) {
     isEqual( check_temp_pwd, $${check_pwd} ) : \
         break()
     isEmpty( MODULE.base_dir ) {
