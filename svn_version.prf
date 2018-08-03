@@ -5,6 +5,7 @@
 
 !load( message_logging ) : error( Can not find feature \"message_logging\" )
 !load( file_system ) : error( Can not find feature \"file_system\" )
+!load( include_files ) : error( Can not find feature \"include_files\" )
 
 isEmpty( SVN.pwd ) : \
     SVN.pwd = $$commonDirectoryForSources()
