@@ -95,7 +95,7 @@ AUTO_VERSION.namespace = $$replace( AUTO_VERSION.namespace, [$$escape_expand(\\W
 
 isEqual( AUTO_VERSION.variant, app ) {
     # Too large windows paths error
-    win32* | win64* {
+    win32 | win64 {
         CONFIG -= \
             object_parallel_to_source \
             object_with_source \
@@ -108,7 +108,7 @@ isEqual( AUTO_VERSION.variant, app ) {
     AUTO_VERSION.pwd = "$${AUTO_VERSION.gen_dir}/$${TARGET}"
 }
 
-win32* | win64* {
+win32 | win64 {
     AUTO_VERSION_EXPORT_DECLARE = "__declspec(dllexport)"
     AUTO_VERSION_IMPORT_DECLARE = "__declspec(dllimport)"
 }

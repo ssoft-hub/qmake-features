@@ -9,7 +9,8 @@
 isEmpty( GIT.pwd ) : \
     GIT.pwd = $$commonDirectoryForSources()
 
-!isEmpty( GIT.pwd ) {
+GIT.test = $$findUpperDirectoryWith( ".git", "$${GIT.pwd}" )
+!isEmpty( GIT.test ) {
     GIT.version = $$system( cd \"$${GIT.pwd}\" && git describe )
     GIT.branch = $$system( cd \"$${GIT.pwd}\" && git symbolic-ref --short HEAD )
     GIT.revision = $$system( cd \"$${GIT.pwd}\" && git rev-parse --short HEAD )

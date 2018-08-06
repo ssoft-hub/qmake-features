@@ -2,11 +2,11 @@
 # Alternative of _DATE_
 
 defineReplace(currentDate) {
-    win32* | win64* : return( $$system( date /t ) )
+    win32 | win64 : return( $$system( date /t ) )
     return( $$system( date "+%d.%m.%Y" ) )
 }
 
 defineReplace(currentTime) {
-    win32* | win64* : return( $$system( time /T ) )
+    win32 | win64 : return( $$system( time /T ) )
     return( $$system( date "+%H:%M:%S" ) )
 }

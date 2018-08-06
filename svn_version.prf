@@ -10,7 +10,8 @@
 isEmpty( SVN.pwd ) : \
     SVN.pwd = $$commonDirectoryForSources()
 
-!isEmpty( SVN.pwd ) {
+SVN.test = $$findUpperDirectoryWith( ".svn", "$${SVN.pwd}" )
+!isEmpty( SVN.test ) {
     SVN.info = $$system( cd \"$${SVN.pwd}\" && svn info )
 
     for( tmp, 0..100 ) {

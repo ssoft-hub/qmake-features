@@ -44,7 +44,7 @@ defineTest( recursiveDefineDependencyDirectories ) {
 !load( qmake_conf_path ) : error( Can not find feature \"qmake_conf_path\" )
 
 # Попытка загрузить кеш с перечнем модулей
-win32* | win64* {
+win32 | win64 {
     DEPENDS_CACHE_FILE = "$${QMAKE_CONF_FILE_PWD}\\.depends.cache"
 } else {
     DEPENDS_CACHE_FILE = "$${QMAKE_CONF_FILE_PWD}/.depends.cache"

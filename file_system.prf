@@ -8,7 +8,7 @@ defineTest( makeDirectory ) {
     exists( "$${ARGS}" ) : \
         return( true )
 
-    win32* | win64* {
+    win32 | win64 {
         COMMAND = "mkdir \"$${ARGS}\""
     } else {
         COMMAND = "mkdir \'-p\' \'$${ARGS}\'"
@@ -28,7 +28,7 @@ defineTest( makeEmptyFile ) {
 
     makeDirectory( "$${DIR_NAME}" )
 
-    win32* | win64* {
+    win32 | win64 {
         COMMAND = "copy /Y NUL \"$${ARGS}\""
     } else {
         COMMAND = ":> \'$${ARGS}\'"
@@ -48,7 +48,7 @@ defineTest( appendToFile ) {
             FILE_PATH = "$${arg}"
         } else {
 
-            win32* | win64* {
+            win32 | win64 {
                 #arg = $$replace( arg, "^", "^^" )
                 #arg = $$replace( arg, "|", "^|" )
                 arg = $$replace( arg, "<", "^<" )
@@ -101,24 +101,23 @@ defineReplace( findUpperDirectoryWith ) {
 
 # Test path on relative or absolute value
 defineTest( isRelativePath ) {
-    win32* | win64* {
-        test_value = ":"
-        contains( ARGS, "$${test_value}" ) {
-            return( true )
-        } else {
+    win32 | win64 {
+        test_value = $$replace( ARGS, ":", "/" )
+        !isEqual( ARGS, "$${test_value}" ) : \
             return( false )
-        }
+    } else {
+        test_value = ":$${ARGS}"
+        test_value = $$replace( test_value, ":/", "/" )
+        isEqual( ARGS, "$${test_value}" ) : \
+            return( false )
     }
-    test_value = "/$${ARGS}"
-    test_list = $$split( ARGS, "test_value" )
-    isEmpty( $$member( test_list, 0 ) ) {
-        return( true )
-    }
-    return( false )
+    return( true )
 }
 
 defineReplace( absolutePath ) {
-    return( "$${_PRO_FILE_PWD_}/$${ARGS}")
+    isRelativePath( "$${ARGS}" ) : \
+        return( "$${_PRO_FILE_PWD_}/$${ARGS}")
+    return ( "$${ARGS}" )
 }
 
 #defineReplace( relativePath ) {
@@ -129,10 +128,7 @@ defineReplace( cleanPath ) {
 
     result = "$$replace( ARGS, "\\\\", "/" )"
     result = "$$replace( result, "//", "/" )"
-    result = "$$replace( result, "/./", "/" )"
-
-    isRelativePath( "$${result}" ) : \
-        result = "$$absolutePath( "$${result}" )"
+    result = "$$absolutePath( "$${result}" )"
 
     result_list = $$split( result, "/" )
 
@@ -140,8 +136,8 @@ defineReplace( cleanPath ) {
     for( result_list_value, result_list ) {
         isEqual( result_list_value, ".." ) {
             result = "$$dirname( result )"
-        } else {
-             win32* | win64* {
+        } else : !isEqual( result_list_value, "." ) {
+             win32 | win64 {
                 isEmpty( result ) {
                     result = "$${result_list_value}"
                 } else {
@@ -158,21 +154,17 @@ defineReplace( cleanPath ) {
 defineReplace( commonPathForTwoPaths ) {
     result =
 
-    first_path = "$$1"
+    first_path = "$$absolutePath( "$$cleanPath( "$$1" )" )"
     isEmpty( first_path ) {
         errorLogging( "[commonPathForTwoPaths] - The first path is empty." )
         return("$${result}")
     }
-    isRelativePath( "$${first_path}" ) : \
-        first_path = "$$absolutePath( "$${first_path}" )"
 
-    second_path = "$$2"
+    second_path = "$$absolutePath( "$$cleanPath( "$$2" )" )"
     isEmpty( second_path ) {
         errorLogging( "[commonPathForTwoPaths] - The second path is empty." )
         return("$${result}")
     }
-    isRelativePath( "$${second_path}" ) : \
-        second_path = "$$absolutePath( "$${second_path}" )"
 
     first_list = $$split( first_path, "/" )
     second_list = $$split( second_path, "/" )
@@ -182,7 +174,7 @@ defineReplace( commonPathForTwoPaths ) {
         second_value = $$member( second_list, $${i} )
         isEmpty( first_value ) | !isEqual( first_value, "$${second_value}" ) : \
             break()
-         win32* | win64* {
+         win32 | win64 {
             isEmpty( result ) {
                 result = "$${first_value}"
             } else {
@@ -192,17 +184,15 @@ defineReplace( commonPathForTwoPaths ) {
             result = "$${result}/$${first_value}"
         }
     }
+
     return( "$${result}" )
 }
 
 defineReplace( commonPathForPaths ) {
     result =
     for( path, ARGS ) {
-        isRelativePath( "$${path}" ) : \
-            path = "$$absolutePath( "$${path}" )"
-
         isEmpty( result ) {
-            result = "$$dirname( path )"
+            result = "$$absolutePath( "$$dirname( path )" )"
         } else {
             result = "$$commonPathForTwoPaths( "$${result}", "$$dirname( path )" )"
         }
