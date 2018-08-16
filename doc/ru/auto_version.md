@@ -225,7 +225,7 @@ namespace ComponentName_AutoVersion
 		::AutoVersion::Version result;
 		result.info = ::ComponentName_AutoVersion::info();
 
-		// Этот блок повторяется для кадой зависимости
+		// Этот блок повторяется для каждой зависимости
 		{
 			::AutoVersion::Dependency dependency;
 			dependency.info = ::Dependency1_AutoVersion::info();
