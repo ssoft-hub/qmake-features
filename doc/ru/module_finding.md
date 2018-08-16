@@ -12,7 +12,7 @@ DEPENDS *= \<module\>
 
 ## Кеширование значения DEPEND_PATH
 
-Чтобы не осуществлять поиск файлов с зависимостями для каждого прохода qmake, имеется возможность кешировать значение переменной DEPEND_PATH в файл $${QMAKE_CONF_FILE_PWD}/.depends.cache. Для осуществления кеширования необходимо для переменной DEPENDS_CACHE_CONFIG добавить значение make_depends_cache
+Чтобы не осуществлять поиск файлов с зависимостями для каждого прохода qmake, имеется возможность кешировать значение переменной DEPEND_PATH в файл $${QMAKE_CONF.pwd}/.depends.cache. Для осуществления кеширования необходимо для переменной DEPENDS_CACHE_CONFIG добавить значение make_depends_cache
 
 ```pro
 DEPENDS_CACHE_CONFIG *= make_depends_cache

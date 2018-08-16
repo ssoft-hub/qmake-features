@@ -3,19 +3,32 @@
 # если проектный файл не является частью репозитория (например, для проектов 3rdparty).
 
 !load( message_logging ) : error( Can not find feature \"message_logging\" )
-!load( file_system ) : error( Can not find feature \"file_system\" )
-!load( include_files ) : error( Can not find feature \"include_files\" )
+!load( file_system ) : errorLogging( Can not find feature \"file_system\" )
+!load( include_files ) : errorLogging( Can not find feature \"include_files\" )
 
-isEmpty( GIT.pwd ) : \
-    GIT.pwd = $$commonDirectoryForSources()
+defineTest( defineGitVersion ) \
+{
+    isEmpty( GIT.pwd ) : \
+        GIT.pwd = $$findUpperDirectoryWith( ".git", "$$first(SOURCES)" )
 
-GIT.test = $$findUpperDirectoryWith( ".git", "$${GIT.pwd}" )
-!isEmpty( GIT.test ) {
+    isEmpty( GIT.pwd ) : \
+        GIT.pwd = $$findUpperDirectoryWith( ".git", "$$first(HEADERS)" )
+
+    #isEmpty( GIT.pwd ) : \
+    #    GIT.pwd = $$commonDirectoryForSources()
+    #GIT.test = $$findUpperDirectoryWith( ".git", "$${GIT.pwd}" )
+    #isEmpty( GIT.test ) : \
+    #    return( false )
+
+    isEmpty( GIT.pwd ) : \
+        return( false )
+
     GIT.version = $$system( cd \"$${GIT.pwd}\" && git describe )
     GIT.branch = $$system( cd \"$${GIT.pwd}\" && git symbolic-ref --short HEAD )
     GIT.revision = $$system( cd \"$${GIT.pwd}\" && git rev-parse --short HEAD )
 
-    !isEmpty( GIT.revision ) {
+    !isEmpty( GIT.revision ) \
+    {
         messageLogging( "Git version of $${TARGET} \($${GIT.pwd}\) is \"$${GIT.version}\", revision is \"$${GIT.revision}\", branch is \"$${GIT.branch}\"." )
 
         DEFINES *= \
@@ -23,4 +36,16 @@ GIT.test = $$findUpperDirectoryWith( ".git", "$${GIT.pwd}" )
             GIT_BRANCH=\\\"$${GIT.branch}\\\" \
             GIT_REVISION=\\\"$${GIT.revision}\\\" \
     }
+
+    export( DEFINES )
+
+    export( GIT.branch )
+    export( GIT.pwd )
+    export( GIT.revision )
+    export( GIT.version )
+
+    return( true )
 }
+
+# Main
+defineGitVersion()

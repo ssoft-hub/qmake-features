@@ -1,16 +1,19 @@
 # Some of log functions
 
-defineTest( messageLogging ) {
+defineTest( messageLogging ) \
+{
     message( [$$basename( _PRO_FILE_ )]: $${ARGS} )
     return( true )
 }
 
-defineTest( warningLogging ) {
+defineTest( warningLogging ) \
+{
     warning( [$$basename( _PRO_FILE_ )]: $${ARGS} )
     return( true )
 }
 
-defineTest( errorLogging ) {
+defineTest( errorLogging ) \
+{
     error( [$$basename( _PRO_FILE_ )]: $${ARGS} )
     return( true )
 }

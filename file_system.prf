@@ -4,90 +4,152 @@
 !load( message_logging ) : error( Can not find feature \"message_logging\" )
 
 # Make directory with subdirectories.
-defineTest( makeDirectory ) {
-    exists( "$${ARGS}" ) : \
-        return( true )
+defineTest( makePath ) \
+{
+    lessThan( QT_MAJOR_VERSION, 5 ) \
+    {
+        exists( "$${ARGS}" ) : \
+            return( true )
 
-    win32 | win64 {
-        COMMAND = "mkdir \"$${ARGS}\""
-    } else {
-        COMMAND = "mkdir \'-p\' \'$${ARGS}\'"
+        win32 | win64 \
+        {
+            COMMAND = "mkdir \"$${ARGS}\""
+        } \
+        else \
+        {
+            COMMAND = "mkdir \'-p\' \'$${ARGS}\'"
+        }
+
+        !system( "$${COMMAND}" ) \
+        {
+            messageLogging( "System command: \"$${COMMAND}\"" )
+            errorLogging( "Can not make directory \"$${ARGS}\"" )
+            return( false )
+        }
+
+        return( true )
+    } \
+    else \
+    {
+        mkpath( "$${ARGS}" ) : \
+            return( true )
     }
-    !system( "$${COMMAND}" ) {
-        messageLogging( "System command: \"$${COMMAND}\"" )
-        errorLogging( "Can not make directory \"$${ARGS}\"" )
-        return( false )
-    }
-    return( true )
+    return( false )
 }
 
 # Make empty file with directories if it needed.
-defineTest( makeEmptyFile ) {
+defineTest( makeEmptyFile ) \
+{
     DIR_NAME = $$dirname( ARGS )
     FILE_NAME = $$basename( ARGS )
 
-    makeDirectory( "$${DIR_NAME}" )
+    makePath( "$${DIR_NAME}" )
 
-    win32 | win64 {
+    win32 | win64 \
+    {
         COMMAND = "copy /Y NUL \"$${ARGS}\""
-    } else {
+    } \
+    else \
+    {
         COMMAND = ":> \'$${ARGS}\'"
     }
-    !system( "$${COMMAND}" ) {
+
+    !system( "$${COMMAND}" ) \
+    {
         messageLogging( "System command: \"$${COMMAND}\"" )
         errorLogging( "Can not create file \"$${ARGS}\"" )
         return( false )
     }
+
     return( true )
 }
 
 # Append lines to file
-defineTest( appendToFile ) {
-    for( arg, ARGS ) {
-        isEmpty( FILE_PATH ) {
-            FILE_PATH = "$${arg}"
-        } else {
+defineTest( appendToFile ) \
+{
+    file_path = $${1}
+    file_data = $${2}
 
-            win32 | win64 {
-                #arg = $$replace( arg, "^", "^^" )
-                #arg = $$replace( arg, "|", "^|" )
-                arg = $$replace( arg, "<", "^<" )
-                arg = $$replace( arg, ">", "^>" )
-                arg = $$replace( arg, "&", "^&" )
+    for( file_line, file_data ) \
+    {
+        win32 | win64 \
+        {
+            #file_line = $$replace( file_line, "^", "^^" )
+            #file_line = $$replace( file_line, "|", "^|" )
+            file_line = $$replace( file_line, "<", "^<" )
+            file_line = $$replace( file_line, ">", "^>" )
+            #file_line = $$replace( file_line, "&", "^&" )
 
-                COMMAND = "echo $${arg}>> \"$${FILE_PATH}\""
-            } else {
-                COMMAND = "echo \'$${arg}\' >> \'$${FILE_PATH}\'"
-            }
-            !system( "$${COMMAND}" ) {
+            COMMAND = "echo $${file_line}>> \"$${file_path}\""
+        } \
+        else \
+        {
+            COMMAND = "echo \'$${file_line}\' >> \'$${file_path}\'"
+        }
+
+        lessThan( QT_MAJOR_VERSION, 5 ) \
+        {
+            !system( "$${COMMAND}" ) \
+            {
                 messageLogging( "System command: \"$${COMMAND}\"" )
-                errorLogging( "Can not append anything to file \"$${ARGS}\"" )
+                errorLogging( "Can not append anything to file \"$${file_path}\"." )
                 return( false )
             }
-            return( true )
+        } \
+        else \
+        {
+            !write_file( "$${file_path}", file_line, append ) \
+            {
+                errorLogging( "Can not append anything to file \"$${file_path}\"." )
+                return( false )
+            }
         }
     }
+
     return( true )
+}
+
+defineTest( writeToFile ) \
+{
+    file_path = $${1}
+    file_data = $${2}
+
+    lessThan( QT_MAJOR_VERSION, 5 ) \
+    {
+        makeEmptyFile( "$${file_path}" )
+        appendToFile( "$${file_path}", $${file_data} )
+    } \
+    else \
+    {
+        !write_file( "$${file_path}", file_data ) \
+        {
+            errorLogging( "Can not write file \"$${file_path}\"." )
+        }
+    }
 }
 
 # Find direcrory with value
 # example: findUpperDirectoryWith( bin, /home/user/working )
-defineReplace( findUpperDirectoryWith ) {
-    result =
+defineReplace( findUpperDirectoryWith ) \
+{
+    unset( result )
 
-    item = "$$1"
-    isEmpty( item ) {
+    item = $${1}
+    isEmpty( item ) \
+    {
         errorLogging( "[findUpperDirectoryWith] - The name of item is empty." )
-        return("$${result}")
+        return( "$${result}" )
     }
 
-    result = $$2
-    isEmpty( result ) {
-        errorLogging( "[findUpperDirectoryWith] - The base directory is empty" )
-        return("$${result}")
+    result = $${2}
+    isEmpty( result ) \
+    {
+        #errorLogging( "[findUpperDirectoryWith] - The base directory is empty" )
+        return( "$${result}" )
     }
 
-    for( tmp, 0..100 ) {
+    for( i, 0..1000 ) \
+    {
         test_value = "$${result}/$${item}"
         exists( $${test_value} ) : \
             break()
@@ -96,91 +158,124 @@ defineReplace( findUpperDirectoryWith ) {
             break()
     }
 
-    return("$${result}")
+    return( "$${result}" )
 }
 
 # Test path on relative or absolute value
-defineTest( isRelativePath ) {
-    win32 | win64 {
-        test_value = $$replace( ARGS, ":", "/" )
-        !isEqual( ARGS, "$${test_value}" ) : \
-            return( false )
-    } else {
-        test_value = ":$${ARGS}"
+defineTest( isRelativePath ) \
+{
+    test_path = $${1}
+
+    win32 | win64 \
+    {
+        test_value = $$replace( test_path, ":", "/" )
+    } \
+    else \
+    {
+        test_value = ":$${test_path}"
         test_value = $$replace( test_value, ":/", "/" )
-        isEqual( ARGS, "$${test_value}" ) : \
-            return( false )
     }
+
+    !isEqual( test_path, "$${test_value}" ) : \
+        return( false )
+
     return( true )
 }
 
-defineReplace( absolutePath ) {
-    isRelativePath( "$${ARGS}" ) : \
-        return( "$${_PRO_FILE_PWD_}/$${ARGS}")
-    return ( "$${ARGS}" )
+defineReplace( absolutePath ) \
+{
+    isRelativePath( "$${1}" ) : \
+        return( "$${_PRO_FILE_PWD_}/$${1}")
+    return ( "$${1}" )
 }
 
-#defineReplace( relativePath ) {
-#    return(0)
-#}
+defineReplace( cleanPath ) \
+{
+    lessThan( QT_MAJOR_VERSION, 5 ) \
+    {
+        result = "$${1}"
+        result = "$$replace( result, "\\\\", "/" )"
+        result = "$$replace( result, "//", "/" )"
+        result = "$$absolutePath( "$${result}" )"
+        result_list = $$split( result, "/" )
 
-defineReplace( cleanPath ) {
-
-    result = "$$replace( ARGS, "\\\\", "/" )"
-    result = "$$replace( result, "//", "/" )"
-    result = "$$absolutePath( "$${result}" )"
-
-    result_list = $$split( result, "/" )
-
-    result =
-    for( result_list_value, result_list ) {
-        isEqual( result_list_value, ".." ) {
-            result = "$$dirname( result )"
-        } else : !isEqual( result_list_value, "." ) {
-             win32 | win64 {
-                isEmpty( result ) {
-                    result = "$${result_list_value}"
-                } else {
+        unset( result )
+        for( result_list_value, result_list ) \
+        {
+            isEqual( result_list_value, ".." ) \
+            {
+                result = "$$dirname( result )"
+            } \
+            else : !isEqual( result_list_value, "." ) \
+            {
+                win32 | win64 \
+                {
+                    isEmpty( result ) \
+                    {
+                        result = "$${result_list_value}"
+                    } \
+                    else \
+                    {
+                        result = "$${result}/$${result_list_value}"
+                    }
+                } \
+                else \
+                {
                     result = "$${result}/$${result_list_value}"
                 }
-            } else {
-                result = "$${result}/$${result_list_value}"
             }
         }
+        return( "$${result}" )
+    } \
+    else \
+    {
+        return( "$$clean_path( "$${1}" )" )
     }
-    return("$${result}")
+
+    return( "$${1}" )
 }
 
-defineReplace( commonPathForTwoPaths ) {
-    result =
+defineReplace( commonPathForTwoPaths ) \
+{
+    unset( result )
 
-    first_path = "$$absolutePath( "$$cleanPath( "$$1" )" )"
-    isEmpty( first_path ) {
+    first_path = "$$absolutePath( "$$cleanPath( $${1} )" )"
+    isEmpty( first_path ) \
+    {
         errorLogging( "[commonPathForTwoPaths] - The first path is empty." )
-        return("$${result}")
+        return( "$${result}" )
     }
 
-    second_path = "$$absolutePath( "$$cleanPath( "$$2" )" )"
-    isEmpty( second_path ) {
+    second_path = "$$absolutePath( "$$cleanPath( $${2} )" )"
+    isEmpty( second_path ) \
+    {
         errorLogging( "[commonPathForTwoPaths] - The second path is empty." )
-        return("$${result}")
+        return( "$${result}" )
     }
 
     first_list = $$split( first_path, "/" )
     second_list = $$split( second_path, "/" )
 
-    for( i, 0..100 ) {
+    for( i, 0..1000 ) \
+    {
         first_value = $$member( first_list, $${i} )
         second_value = $$member( second_list, $${i} )
         isEmpty( first_value ) | !isEqual( first_value, "$${second_value}" ) : \
             break()
-         win32 | win64 {
-            isEmpty( result ) {
+
+        win32 | win64 \
+        {
+            isEmpty( result ) \
+            {
                 result = "$${first_value}"
-            } else {
+            } \
+            else \
+            {
                 result = "$${result}/$${first_value}"
             }
-        } else {
+        } \
+        else \
+        {
             result = "$${result}/$${first_value}"
         }
     }
@@ -188,12 +283,18 @@ defineReplace( commonPathForTwoPaths ) {
     return( "$${result}" )
 }
 
-defineReplace( commonPathForPaths ) {
-    result =
-    for( path, ARGS ) {
-        isEmpty( result ) {
+defineReplace( commonPathForPaths ) \
+{
+    unset( result )
+
+    for( path, ARGS ) \
+    {
+        isEmpty( result ) \
+        {
             result = "$$absolutePath( "$$dirname( path )" )"
-        } else {
+        } \
+        else \
+        {
             result = "$$commonPathForTwoPaths( "$${result}", "$$dirname( path )" )"
         }
     }

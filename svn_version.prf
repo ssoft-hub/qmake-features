@@ -4,41 +4,72 @@
 # не является частью репозитория (например, для проектов 3rdparty).
 
 !load( message_logging ) : error( Can not find feature \"message_logging\" )
-!load( file_system ) : error( Can not find feature \"file_system\" )
-!load( include_files ) : error( Can not find feature \"include_files\" )
+!load( file_system ) : errorLogging( Can not find feature \"file_system\" )
+!load( include_files ) : errorLogging( Can not find feature \"include_files\" )
 
-isEmpty( SVN.pwd ) : \
-    SVN.pwd = $$commonDirectoryForSources()
+defineTest( defineSvnVersion ) \
+{
+    SVN.svn_version = $$system( svn --version --quiet )
+    isEmpty( SVN.svn_version ) : \
+        return( false )
 
-SVN.test = $$findUpperDirectoryWith( ".svn", "$${SVN.pwd}" )
-!isEmpty( SVN.test ) {
-    SVN.info = $$system( cd \"$${SVN.pwd}\" && svn info )
-
-    for( tmp, 0..100 ) {
-
-        TEMP_MEMBER = $$member(SVN.info, $${tmp})
-
-        isEqual( TEMP_PREV_MEMBER, "Rev:" ) : \
-            SVN.revision = $${TEMP_MEMBER}
-
-        isEqual( TEMP_PREV_MEMBER, "URL:" ) {
-            TEMP_LIST = $$split( TEMP_MEMBER, '/' )
-            SVN.branch = $$member(TEMP_LIST, 1)
-            isEqual( SVN.branch, "branches" ) | isEqual( SVN.branch, "tags" ) {
-                SVN.branch = $${SVN.branch}/$$member(TEMP_LIST, 2)
-                SVN.version = $$member(TEMP_LIST, 2)
-            } else {
-                SVN.version = $${SVN.branch}
-            }
+    isEmpty( SVN.pwd ) \
+    {
+        !lessThan( SVN.svn_version, "1.7.0" ) \
+        {
+            SVN.pwd = $$findUpperDirectoryWith( ".svn", "$$first(SOURCES)" )
+            isEmpty( SVN.pwd ) : \
+                SVN.pwd = $$findUpperDirectoryWith( ".svn", "$$first(HEADERS)" )
+        } \
+        else \
+        {
+            SVN.pwd = $$commonDirectoryForSources()
+            SVN.test = $$findUpperDirectoryWith( ".svn", "$${SVN.pwd}" )
+            isEmpty( SVN.test ) : \
+                return( false )
         }
-
-        TEMP_PREV_MEMBER = $${TEMP_MEMBER}
     }
 
-    unset( tmp )
-    unset( TEMP_LIST )
-    unset( TEMP_MEMBER )
-    unset( TEMP_PREV_MEMBER )
+    isEmpty( SVN.pwd ) : \
+        return( false )
+
+    SVN.info = $$system( cd \"$${SVN.pwd}\" && svn info )
+
+    for( current_value, SVN.info ) \
+    {
+        isEqual( previous_value, "Rev:" ) : \
+            SVN.revision = $${current_value}
+
+        isEqual( previous_value, "URL:" ) : \
+            isEmpty( SVN.url ) : \
+                SVN.url = $${current_value}
+
+        isEqual( previous_value, "Root:" ) : \
+            isEmpty( SVN.root ) : \
+                SVN.root = $${current_value}
+
+        previous_value = $${current_value}
+    }
+
+    isEmpty( SVN.revision ) : \
+        return( false )
+
+    !isEmpty( SVN.url ) : !isEmpty( SVN.root ) \
+    {
+        SVN.relative_path = $$split( SVN.url, "$${SVN.root}" )
+        SVN.path_list = $$split( SVN.relative_path, "/" )
+        SVN.branch = $$member( SVN.path_list, 0 )
+
+        isEqual( SVN.branch, "branches" ) | isEqual( SVN.branch, "tags" ) \
+        {
+            SVN.branch = $${SVN.branch}/$$member( SVN.path_list, 1 )
+            SVN.version = $$member( SVN.path_list, 1 )
+        } \
+        else \
+        {
+            SVN.version = $${SVN.branch}
+        }
+    }
 
     DEFINES *= \
         SVN_VERSION=\\\"$${SVN.version}\\\" \
@@ -47,4 +78,16 @@ SVN.test = $$findUpperDirectoryWith( ".svn", "$${SVN.pwd}" )
 
     !isEmpty( SVN.revision ) : \
         messageLogging( "Svn version of $${TARGET} \($${SVN.pwd}\) is \"$${SVN.version}\", revision is \"$${SVN.revision}\", branch is \"$${SVN.branch}\"." )
+
+    export( DEFINES )
+
+    export( SVN.branch )
+    export( SVN.pwd )
+    export( SVN.revision )
+    export( SVN.version )
+
+    return( true )
 }
+
+# Main
+defineSvnVersion()

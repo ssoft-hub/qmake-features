@@ -1,266 +1,313 @@
 !load( message_logging ) : error( Can not find feature \"message_logging\" )
-!load( file_system ) : error( Can not find feature \"file_system\" )
-
-!contains( TEMPLATE, .*subdirs ) {
-
-AUTO_VERSION.version =
-
-CONFIG( static ) : \
-    AUTO_VERSION.variant = header_only
-
-contains( TEMPLATE, .*app ) : \
-    AUTO_VERSION.variant = app
-
-isEmpty( AUTO_VERSION.gen_dir ) {
-    !load( complex_paths ) : errorLogging( "Can not find feature \"complex_paths\"" )
-    AUTO_VERSION.gen_dir = "$${COMPLEX.gen_dir}/AutoVersion"
-}
-
+!load( file_system ) : errorLogging( Can not find feature \"file_system\" )
 !load( module_depends ) : errorLogging( "Can not find feature \"module_depends\"" )
 !load( build_moment ) : errorLogging( "Can not find feature \"build_moment\"" )
+!load( complex_paths ) : errorLogging( "Can not find feature \"complex_paths\"" )
+!load( git_version ) : errorLogging( "Can not find feature \"git_version\"" )
 
-isEmpty( AUTO_VERSION.revision ) {
-    !load( git_version ) : errorLogging( "Can not find feature \"git_version\"" )
-    AUTO_VERSION.version = $${GIT.version}
-    AUTO_VERSION.revision = $${GIT.revision}
-    AUTO_VERSION.branch = $${GIT.branch}
-}
+defineTest( generateAutoVersionFiles ) \
+{
+    AUTO_VERSION.version =
 
-isEmpty( AUTO_VERSION.revision ) {
-    !load( svn_version ) : errorLogging( "Can not find feature \"svn_version\"" )
-    AUTO_VERSION.version = $${SVN.version}
-    AUTO_VERSION.revision = $${SVN.revision}
-    AUTO_VERSION.branch = $${SVN.branch}
-}
+    CONFIG( static ) : \
+        AUTO_VERSION.variant = header_only
 
-AUTO_VERSION.date = "$$currentDate()"
-AUTO_VERSION.time = "$$currentTime()"
+    contains( TEMPLATE, .*app ) : \
+        AUTO_VERSION.variant = app
 
-isEmpty( AUTO_VERSION.product ) : \
-    AUTO_VERSION.product = "$${QMAKE_TARGET_PRODUCT}"
-
-isEmpty( AUTO_VERSION.product ) : \
-    AUTO_VERSION.product = "$${TARGET}"
-
-isEmpty( AUTO_VERSION.vendor ) : \
-    AUTO_VERSION.vendor = "$${QMAKE_TARGET_COMPANY}"
-
-isEmpty( AUTO_VERSION.copyright ) : \
-    AUTO_VERSION.copyright = "$${QMAKE_TARGET_COPYRIGHT}"
-
-isEmpty( AUTO_VERSION.license ) : \
-    AUTO_VERSION.license = "$${QMAKE_TARGET_LICENSE}"
-
-isEmpty( AUTO_VERSION.description ) : \
-    AUTO_VERSION.description = "$${QMAKE_TARGET_DESCRIPTION}"
-
-TEMP_LIST = $$split( AUTO_VERSION.version, '.' )
-
-TEMP.first = $$lower( $$member(TEMP_LIST, 0) )
-isEqual( TEMP.first, "v" ) {
-    TEMP.major = $$lower( $$member(TEMP_LIST, 1) )
-    TEMP.minor = $$member(TEMP_LIST, 2)
-    TEMP.patch = $$member(TEMP_LIST, 3)
-} else {
-    TEMP.major = $$lower( $$member(TEMP_LIST, 0) )
-    TEMP.major = $$replace( TEMP.major, "v", "" )
-    TEMP.minor = $$member(TEMP_LIST, 1)
-    TEMP.patch = $$member(TEMP_LIST, 2)
-}
-
-CHECK.major = $$replace( TEMP.major, [$$escape_expand(\\D)], "0" )
-CHECK.minor = $$replace( TEMP.minor, [$$escape_expand(\\D)], "0" )
-CHECK.patch = $$replace( TEMP.patch, [$$escape_expand(\\D)], "0" )
-
-isEqual( TEMP.major, $${CHECK.major} ) : isEqual( TEMP.minor, $${CHECK.minor} ) : isEqual( TEMP.patch, $${CHECK.patch} ) {
-    AUTO_VERSION.major = $${TEMP.major}
-    AUTO_VERSION.minor = $${TEMP.minor}
-    AUTO_VERSION.patch = $${TEMP.patch}
-}
-
-unset( TEMP )
-unset( CHECK )
-
-isEmpty( AUTO_VERSION.major ) : AUTO_VERSION.major = "1"
-isEmpty( AUTO_VERSION.minor ) : AUTO_VERSION.minor = "0"
-isEmpty( AUTO_VERSION.patch ) : AUTO_VERSION.patch = "0"
-
-greaterThan( QT_MAJOR_VERSION, 4 ) : isEmpty( VERSION ) {
-    CONFIG *= skip_target_version_ext
-    VERSION = $${AUTO_VERSION.major}.$${AUTO_VERSION.minor}.$${AUTO_VERSION.patch}
-}
-
-AUTO_VERSION.namespace = $${TARGET}_AutoVersion
-AUTO_VERSION.namespace = $$replace( AUTO_VERSION.namespace, [$$escape_expand(\\W)], _ )
-
-isEqual( AUTO_VERSION.variant, app ) {
-    # Too large windows paths error
-    win32 | win64 {
-        CONFIG -= \
-            object_parallel_to_source \
-            object_with_source \
-
-        AUTO_VERSION.pwd = "$${AUTO_VERSION.gen_dir}/$${TARGET}"
-    } else {
-        AUTO_VERSION.pwd = "$${AUTO_VERSION.gen_dir}/$${MODULE.base_dir}"
+    isEmpty( AUTO_VERSION.gen_dir ) \
+    {
+        AUTO_VERSION.gen_dir = "$${COMPLEX.gen_dir}/AutoVersion"
     }
-} else {
-    AUTO_VERSION.pwd = "$${AUTO_VERSION.gen_dir}/$${TARGET}"
-}
 
-win32 | win64 {
-    AUTO_VERSION_EXPORT_DECLARE = "__declspec(dllexport)"
-    AUTO_VERSION_IMPORT_DECLARE = "__declspec(dllimport)"
-}
+    isEmpty( AUTO_VERSION.revision ) \
+    {
+        AUTO_VERSION.version = $${GIT.version}
+        AUTO_VERSION.revision = $${GIT.revision}
+        AUTO_VERSION.branch = $${GIT.branch}
+    }
 
-AUTO_VERSION.header_file = "$${AUTO_VERSION.pwd}/AutoVersion_p.h"
-HEADERS *= "$${AUTO_VERSION.header_file}"
+    isEmpty( AUTO_VERSION.revision ) \
+    {
+        !load( svn_version ) : errorLogging( "Can not find feature \"svn_version\"" )
+        AUTO_VERSION.version = $${SVN.version}
+        AUTO_VERSION.revision = $${SVN.revision}
+        AUTO_VERSION.branch = $${SVN.branch}
+    }
 
-isEqual( AUTO_VERSION.variant, header_only ) {
-    AUTO_VERSION.source_file = "$${AUTO_VERSION.header_file}"
-    AUTO_VERSION_EXPORT_INLINE = "inline"
-} else {
-    AUTO_VERSION_EXPORT_VALUE = "AUTO_VERSION_EXPORT"
-    AUTO_VERSION.source_file = "$${AUTO_VERSION.pwd}/AutoVersion_p.cpp"
-    SOURCES *= "$${AUTO_VERSION.source_file}"
-}
+    AUTO_VERSION.date = "$$currentDate()"
+    AUTO_VERSION.time = "$$currentTime()"
 
-tab = $$escape_expand(\\t)
+    isEmpty( AUTO_VERSION.product ) : \
+        AUTO_VERSION.product = "$${QMAKE_TARGET_PRODUCT}"
 
-# HEADER FILE
-AUTO_VERSION_H_CONTENTS += \
-    "$${LITERAL_HASH}pragma once" \
-    "$${LITERAL_HASH}ifndef $${AUTO_VERSION.namespace}_H" \
-    "$${LITERAL_HASH}define $${AUTO_VERSION.namespace}_H" \
-    "//" \
-    "$${LITERAL_HASH}include <AutoVersion.h>" \
-    "//" \
-    "$${LITERAL_HASH}ifdef AUTO_VERSION_EXPORT" \
-    "$${LITERAL_HASH}undef AUTO_VERSION_EXPORT" \
-    "$${LITERAL_HASH}endif // AUTO_VERSION_EXPORT" \
-    "//" \
-    "$${LITERAL_HASH}ifdef EXPORT_$${AUTO_VERSION.namespace}" \
-    "$${LITERAL_HASH}define AUTO_VERSION_EXPORT $${AUTO_VERSION_EXPORT_DECLARE}" \
-    "$${LITERAL_HASH}else" \
-    "$${LITERAL_HASH}define AUTO_VERSION_EXPORT $${AUTO_VERSION_IMPORT_DECLARE}" \
-    "$${LITERAL_HASH}endif // $${AUTO_VERSION.namespace}_EXPORT" \
-    "//" \
-    "namespace $${AUTO_VERSION.namespace}" \
-    "{" \
-    "$${tab}inline ::AutoVersion::Info info ()" \
-    "$${tab}{" \
-    "$${tab}$${tab}::AutoVersion::Info result;" \
-    "$${tab}$${tab}result.product = \"$${AUTO_VERSION.product}\";" \
-    "$${tab}$${tab}result.version = \"$${AUTO_VERSION.version}\";" \
-    "$${tab}$${tab}result.revision = \"$${AUTO_VERSION.revision}\";" \
-    "$${tab}$${tab}result.date = \"$${AUTO_VERSION.date}\";" \
-    "$${tab}$${tab}result.time = \"$${AUTO_VERSION.time}\";" \
-    "$${tab}$${tab}result.vendor = \"$${AUTO_VERSION.vendor}\";" \
-    "$${tab}$${tab}result.copyright = \"$${AUTO_VERSION.copyright}\";" \
-    "$${tab}$${tab}result.license = \"$${AUTO_VERSION.license}\";" \
-    "$${tab}$${tab}result.description = \"$${AUTO_VERSION.description}\";" \
-    "$${tab}$${tab}return result;" \
-    "$${tab}}" \
-    "}" \
-    "//" \
-    "namespace $${AUTO_VERSION.namespace}" \
-    "{" \
-    "$${tab}$${AUTO_VERSION_EXPORT_VALUE} ::AutoVersion::Version version ();" \
-    "}" \
-    "//" \
+    isEmpty( AUTO_VERSION.product ) : \
+        AUTO_VERSION.product = "$${TARGET}"
 
-AUTO_VERSION_H_CONTENTS_END = "$${LITERAL_HASH}endif // $${AUTO_VERSION.namespace}_H"
+    isEmpty( AUTO_VERSION.vendor ) : \
+        AUTO_VERSION.vendor = "$${QMAKE_TARGET_COMPANY}"
 
-# SOURCE FILE
-# Generation includes of dependencies
-for( depend, LOADED_DEPENDS ) {
-    AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.gen_dir}/$${depend}/AutoVersion_p.h"
-    !isEqual( AUTO_VERSION.header_file, $${AUTO_VERSION_H_TEMP_FILE} ) : \
-        exists( $${AUTO_VERSION_H_TEMP_FILE} ) : \
-            AUTO_VERSION_CPP_CONTENTS += \
-                "$${LITERAL_HASH}include \"$${AUTO_VERSION_H_TEMP_FILE}\""
-}
+    isEmpty( AUTO_VERSION.copyright ) : \
+        AUTO_VERSION.copyright = "$${QMAKE_TARGET_COPYRIGHT}"
 
-AUTO_VERSION_CPP_CONTENTS += \
-    "//" \
-    "$${LITERAL_HASH}define EXPORT_$${AUTO_VERSION.namespace}" \
-    "$${LITERAL_HASH}include \"AutoVersion_p.h\"" \
-    "//" \
+    isEmpty( AUTO_VERSION.license ) : \
+        AUTO_VERSION.license = "$${QMAKE_TARGET_LICENSE}"
 
-AUTO_VERSION_CPP_CONTENTS += \
-    "//" \
-    "namespace $${AUTO_VERSION.namespace}" \
-    "{" \
-    "$${tab}$${AUTO_VERSION_EXPORT_INLINE} ::AutoVersion::Version version ()" \
-    "$${tab}{" \
-    "$${tab}$${tab}::AutoVersion::Version result;" \
-    "$${tab}$${tab}result.info = ::$${AUTO_VERSION.namespace}::info();" \
+    isEmpty( AUTO_VERSION.description ) : \
+        AUTO_VERSION.description = "$${QMAKE_TARGET_DESCRIPTION}"
 
-# Generation tree of dependencies
-for( depend, LOADED_DEPENDS ) {
-    AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.gen_dir}/$${depend}/AutoVersion_p.h"
-    AUTO_VERSION_TEMP_NAMESPACE = $${depend}_AutoVersion
-    AUTO_VERSION_TEMP_NAMESPACE = $$replace( AUTO_VERSION_TEMP_NAMESPACE, [$$escape_expand(\\W)], _ )
-    !isEqual( AUTO_VERSION_TEMP_NAMESPACE, $${AUTO_VERSION.namespace} ) : \
-        exists( $${AUTO_VERSION_H_TEMP_FILE} ) : \
-            AUTO_VERSION_CPP_CONTENTS += \
-                "$${tab}$${tab}{" \
-                "$${tab}$${tab}$${tab}::AutoVersion::Dependency dependency;" \
-                "$${tab}$${tab}$${tab}dependency.info = ::$${AUTO_VERSION_TEMP_NAMESPACE}::info();" \
-                "$${tab}$${tab}$${tab}dependency.version = ::$${AUTO_VERSION_TEMP_NAMESPACE}::version();" \
-                "$${tab}$${tab}$${tab}result.dependencies.push_back( dependency );" \
-                "$${tab}$${tab}}"
-}
+    TEMP_LIST = $$split( AUTO_VERSION.version, '.' )
 
-AUTO_VERSION_CPP_CONTENTS += \
-    "$${tab}$${tab}return result;" \
-    "$${tab}}" \
-    "}" \
+    TEMP.first = $$lower( $$member(TEMP_LIST, 0) )
+    isEqual( TEMP.first, "v" ) \
+    {
+        TEMP.major = $$lower( $$member(TEMP_LIST, 1) )
+        TEMP.minor = $$member(TEMP_LIST, 2)
+        TEMP.patch = $$member(TEMP_LIST, 3)
+    } \
+    else \
+    {
+        TEMP.major = $$lower( $$member(TEMP_LIST, 0) )
+        TEMP.major = $$replace( TEMP.major, "v", "" )
+        TEMP.minor = $$member(TEMP_LIST, 1)
+        TEMP.patch = $$member(TEMP_LIST, 2)
+    }
 
-# SOURCE FILE APP ADDITION
-equals( AUTO_VERSION.variant, app ) {
+    CHECK.major = $$replace( TEMP.major, [$$escape_expand(\\D)], "0" )
+    CHECK.minor = $$replace( TEMP.minor, [$$escape_expand(\\D)], "0" )
+    CHECK.patch = $$replace( TEMP.patch, [$$escape_expand(\\D)], "0" )
+
+    isEqual( TEMP.major, $${CHECK.major} ) : isEqual( TEMP.minor, $${CHECK.minor} ) : isEqual( TEMP.patch, $${CHECK.patch} ) \
+    {
+        AUTO_VERSION.major = $${TEMP.major}
+        AUTO_VERSION.minor = $${TEMP.minor}
+        AUTO_VERSION.patch = $${TEMP.patch}
+    }
+
+    unset( TEMP )
+    unset( CHECK )
+
+    isEmpty( AUTO_VERSION.major ) : AUTO_VERSION.major = "1"
+    isEmpty( AUTO_VERSION.minor ) : AUTO_VERSION.minor = "0"
+    isEmpty( AUTO_VERSION.patch ) : AUTO_VERSION.patch = "0"
+
+    greaterThan( QT_MAJOR_VERSION, 4 ) : isEmpty( VERSION ) \
+    {
+        CONFIG *= skip_target_version_ext
+        VERSION = $${AUTO_VERSION.major}.$${AUTO_VERSION.minor}.$${AUTO_VERSION.patch}
+    }
+
+    AUTO_VERSION.namespace = $${TARGET}_AutoVersion
+    AUTO_VERSION.namespace = $$replace( AUTO_VERSION.namespace, [$$escape_expand(\\W)], _ )
+
+    isEqual( AUTO_VERSION.variant, app ) \
+    {
+        # Too large windows paths error
+        win32 | win64 \
+        {
+            CONFIG -= \
+                object_parallel_to_source \
+                object_with_source \
+
+            AUTO_VERSION.pwd = "$${AUTO_VERSION.gen_dir}/$${TARGET}"
+        } \
+        else \
+        {
+            AUTO_VERSION.pwd = "$${AUTO_VERSION.gen_dir}/$${MODULE.base_dir}"
+        }
+    } \
+    else \
+    {
+        AUTO_VERSION.pwd = "$${AUTO_VERSION.gen_dir}/$${TARGET}"
+    }
+
+    win32 | win64 \
+    {
+        AUTO_VERSION_EXPORT_DECLARE = "__declspec(dllexport)"
+        AUTO_VERSION_IMPORT_DECLARE = "__declspec(dllimport)"
+    }
+
+    AUTO_VERSION.header_file = "$${AUTO_VERSION.pwd}/AutoVersion_p.h"
+    HEADERS *= "$${AUTO_VERSION.header_file}"
+
+    isEqual( AUTO_VERSION.variant, header_only ) \
+    {
+        AUTO_VERSION_EXPORT_INLINE = "inline"
+    } \
+    else \
+    {
+        AUTO_VERSION_EXPORT_VALUE = "AUTO_VERSION_EXPORT"
+        AUTO_VERSION.source_file = "$${AUTO_VERSION.pwd}/AutoVersion_p.cpp"
+        SOURCES *= "$${AUTO_VERSION.source_file}"
+    }
+
+    tab = $$escape_expand(\\t)
+
+    # HEADER FILE
+    AUTO_VERSION_H_CONTENTS += \
+        "$${LITERAL_HASH}pragma once" \
+        "$${LITERAL_HASH}ifndef $${AUTO_VERSION.namespace}_H" \
+        "$${LITERAL_HASH}define $${AUTO_VERSION.namespace}_H" \
+        "//" \
+        "$${LITERAL_HASH}include <AutoVersion.h>" \
+        "//" \
+        "$${LITERAL_HASH}ifdef AUTO_VERSION_EXPORT" \
+        "$${LITERAL_HASH}undef AUTO_VERSION_EXPORT" \
+        "$${LITERAL_HASH}endif // AUTO_VERSION_EXPORT" \
+        "//" \
+        "$${LITERAL_HASH}ifdef EXPORT_$${AUTO_VERSION.namespace}" \
+        "$${LITERAL_HASH}define AUTO_VERSION_EXPORT $${AUTO_VERSION_EXPORT_DECLARE}" \
+        "$${LITERAL_HASH}else" \
+        "$${LITERAL_HASH}define AUTO_VERSION_EXPORT $${AUTO_VERSION_IMPORT_DECLARE}" \
+        "$${LITERAL_HASH}endif // $${AUTO_VERSION.namespace}_EXPORT" \
+        "//" \
+        "namespace $${AUTO_VERSION.namespace}" \
+        "{" \
+        "$${tab}inline ::AutoVersion::Info info ()" \
+        "$${tab}{" \
+        "$${tab}$${tab}::AutoVersion::Info result;" \
+        "$${tab}$${tab}result.product = \"$${AUTO_VERSION.product}\";" \
+        "$${tab}$${tab}result.version = \"$${AUTO_VERSION.version}\";" \
+        "$${tab}$${tab}result.revision = \"$${AUTO_VERSION.revision}\";" \
+        "$${tab}$${tab}result.date = \"$${AUTO_VERSION.date}\";" \
+        "$${tab}$${tab}result.time = \"$${AUTO_VERSION.time}\";" \
+        "$${tab}$${tab}result.vendor = \"$${AUTO_VERSION.vendor}\";" \
+        "$${tab}$${tab}result.copyright = \"$${AUTO_VERSION.copyright}\";" \
+        "$${tab}$${tab}result.license = \"$${AUTO_VERSION.license}\";" \
+        "$${tab}$${tab}result.description = \"$${AUTO_VERSION.description}\";" \
+        "$${tab}$${tab}return result;" \
+        "$${tab}}" \
+        "}" \
+        "//" \
+        "namespace $${AUTO_VERSION.namespace}" \
+        "{" \
+        "$${tab}$${AUTO_VERSION_EXPORT_VALUE} ::AutoVersion::Version version ();" \
+        "}" \
+        "//" \
+
+    AUTO_VERSION_H_CONTENTS_END = "$${LITERAL_HASH}endif // $${AUTO_VERSION.namespace}_H"
+
+    # SOURCE FILE
+    # Generation includes of dependencies
+    for( depend, DEPENDS.loaded ) \
+    {
+        AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.gen_dir}/$${depend}/AutoVersion_p.h"
+        !isEqual( AUTO_VERSION.header_file, $${AUTO_VERSION_H_TEMP_FILE} ) : \
+            exists( $${AUTO_VERSION_H_TEMP_FILE} ) : \
+                AUTO_VERSION_CPP_CONTENTS += \
+                    "$${LITERAL_HASH}include \"$${AUTO_VERSION_H_TEMP_FILE}\""
+    }
+
     AUTO_VERSION_CPP_CONTENTS += \
         "//" \
-        "namespace AutoVersion" \
+        "$${LITERAL_HASH}define EXPORT_$${AUTO_VERSION.namespace}" \
+        "$${LITERAL_HASH}include \"AutoVersion_p.h\"" \
+        "//" \
+
+    AUTO_VERSION_CPP_CONTENTS += \
+        "//" \
+        "namespace $${AUTO_VERSION.namespace}" \
         "{" \
-        "$${tab}::AutoVersion::Version version ()" \
+        "$${tab}$${AUTO_VERSION_EXPORT_INLINE} ::AutoVersion::Version version ()" \
         "$${tab}{" \
-        "$${tab}$${tab}return ::$${AUTO_VERSION.namespace}::version();" \
+        "$${tab}$${tab}::AutoVersion::Version result;" \
+        "$${tab}$${tab}result.info = ::$${AUTO_VERSION.namespace}::info();" \
+
+    # Generation tree of dependencies
+    for( depend, DEPENDS.loaded ) \
+    {
+        AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.gen_dir}/$${depend}/AutoVersion_p.h"
+        AUTO_VERSION_TEMP_NAMESPACE = $${depend}_AutoVersion
+        AUTO_VERSION_TEMP_NAMESPACE = $$replace( AUTO_VERSION_TEMP_NAMESPACE, [$$escape_expand(\\W)], _ )
+        !isEqual( AUTO_VERSION_TEMP_NAMESPACE, $${AUTO_VERSION.namespace} ) : \
+            exists( $${AUTO_VERSION_H_TEMP_FILE} ) : \
+                AUTO_VERSION_CPP_CONTENTS += \
+                    "$${tab}$${tab}{" \
+                    "$${tab}$${tab}$${tab}::AutoVersion::Dependency dependency;" \
+                    "$${tab}$${tab}$${tab}dependency.info = ::$${AUTO_VERSION_TEMP_NAMESPACE}::info();" \
+                    "$${tab}$${tab}$${tab}dependency.version = ::$${AUTO_VERSION_TEMP_NAMESPACE}::version();" \
+                    "$${tab}$${tab}$${tab}result.dependencies.push_back( dependency );" \
+                    "$${tab}$${tab}}"
+    }
+
+    AUTO_VERSION_CPP_CONTENTS += \
+        "$${tab}$${tab}return result;" \
         "$${tab}}" \
-        "}"
+        "}" \
+
+    # SOURCE FILE APP ADDITION
+    equals( AUTO_VERSION.variant, app ) \
+    {
+        AUTO_VERSION_CPP_CONTENTS += \
+            "//" \
+            "namespace AutoVersion" \
+            "{" \
+            "$${tab}::AutoVersion::Version version ()" \
+            "$${tab}{" \
+            "$${tab}$${tab}return ::$${AUTO_VERSION.namespace}::version();" \
+            "$${tab}}" \
+            "}"
+    }
+
+    messageLogging( Generate version header file $${AUTO_VERSION.header_file}. )
+    !writeToFile( "$${AUTO_VERSION.header_file}", $${AUTO_VERSION_H_CONTENTS} ) : \
+        return( false )
+
+    !isEqual( AUTO_VERSION.variant, header_only ) \
+    {
+        messageLogging( Generate version source file $${AUTO_VERSION.source_file}. )
+        !writeToFile( "$${AUTO_VERSION.source_file}", $${AUTO_VERSION_CPP_CONTENTS} ) : \
+            return( false )
+    } \
+    else \
+    {
+        !appendToFile( "$${AUTO_VERSION.header_file}", $${AUTO_VERSION_CPP_CONTENTS} ) : \
+            return( false )
+    }
+
+    !appendToFile( "$${AUTO_VERSION.header_file}", $${AUTO_VERSION_H_CONTENTS_END} ) : \
+        return( false )
+
+    INCLUDEPATH *= \
+        $${PWD}/include \
+
+    DEPENDPATH *= \
+        $${PWD}/include \
+
+    DEFINES *= \
+        AUTO_VERSION_USED \
+
+    export( CONFIG )
+    export( DEFINES )
+    export( DEPENDPATH )
+    export( HEADERS )
+    export( INCLUDEPATH )
+    export( SOURCES )
+    export( VERSION )
+
+    export( AUTO_VERSION.branch )
+    export( AUTO_VERSION.copyright )
+    export( AUTO_VERSION.date )
+    export( AUTO_VERSION.description )
+    export( AUTO_VERSION.gen_dir )
+    export( AUTO_VERSION.header_file )
+    export( AUTO_VERSION.license )
+    export( AUTO_VERSION.major )
+    export( AUTO_VERSION.minor )
+    export( AUTO_VERSION.namespace )
+    export( AUTO_VERSION.patch )
+    export( AUTO_VERSION.product )
+    export( AUTO_VERSION.pwd )
+    export( AUTO_VERSION.revision )
+    export( AUTO_VERSION.source_file )
+    export( AUTO_VERSION.time )
+    export( AUTO_VERSION.variant )
+    export( AUTO_VERSION.vendor )
+    export( AUTO_VERSION.version )
+
+    return( true )
 }
 
-messageLogging( Generate version header file $${AUTO_VERSION.header_file}. )
-!isEqual( AUTO_VERSION.variant, header_only ) : \
-    messageLogging( Generate version source file $${AUTO_VERSION.source_file}. )
-
-# Механизм QMAKE_SUBSTITUTES с параметром .depends.cache.in не работает для msvc,
-# поэтому формирование файла реализовано через echo с перенаправлением в файл.
-makeEmptyFile( "$${AUTO_VERSION.header_file}" )
-makeEmptyFile( "$${AUTO_VERSION.source_file}" )
-
-appendToFile( "$${AUTO_VERSION.header_file}", $${AUTO_VERSION_H_CONTENTS} )
-appendToFile( "$${AUTO_VERSION.source_file}", $${AUTO_VERSION_CPP_CONTENTS} )
-appendToFile( "$${AUTO_VERSION.header_file}", $${AUTO_VERSION_H_CONTENTS_END} )
-
-INCLUDEPATH *= \
-    $${PWD}/include \
-
-DEPENDPATH *= \
-    $${PWD}/include \
-
-DEFINES *= \
-    QMAKE_AUTO_VERSION_USED \
-
-unset( tab )
-unset( h_line )
-unset( cpp_line )
-unset( AUTO_VERSION_H_CONTENTS )
-unset( AUTO_VERSION_CPP_CONTENTS )
-unset( AUTO_VERSION_H_TEMP_FILE )
-unset( AUTO_VERSION_TEMP_NAMESPACE )
-unset( AUTO_VERSION_EXPORT_DECLARE )
-unset( AUTO_VERSION_IMPORT_DECLARE )
-unset( AUTO_VERSION_EXPORT_INLINE )
-unset( AUTO_VERSION_EXPORT_VALUE )
-}
+!contains( TEMPLATE, .*subdirs ) : \
+    !generateAutoVersionFiles() : \
+        errorLogging( AutoVersion files generation failed. )

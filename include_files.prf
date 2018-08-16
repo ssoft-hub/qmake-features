@@ -1,20 +1,24 @@
-!load( file_system ) : error( Can not find feature \"file_system\" )
 !load( message_logging ) : error( Can not find feature \"message_logging\" )
+!load( file_system ) : errorLogging( Can not find feature \"file_system\" )
 
 # Сооставлят список поддиректорий до 10 уровней вложености
 ################################################################################
 
-defineTest( addSubdirs ) {
+defineTest( addSubdirs ) \
+{
     result = false
 
-    for( subdir, ARGS ) {
+    for( subdir, ARGS ) \
+    {
         entries = $$files( $${subdir}/* )
-        for( entry, entries ) {
-
+        for( entry, entries ) \
+        {
             sub_entries = $$files( $${entry}/* )
 
-            !isEmpty( sub_entries ) {
-                !contains( __RESOLVED_DIRS__, "$${entry}" ) {
+            !isEmpty( sub_entries ) \
+            {
+                !contains( __RESOLVED_DIRS__, "$${entry}" ) \
+                {
                     __RESOLVED_DIRS__ *= "$${entry}"
                     result = true
                 }
@@ -25,9 +29,12 @@ defineTest( addSubdirs ) {
     return( $${result} )
 }
 
-defineTest( addSubdirsRecursive ) {
-    for( tmp, 0..100 ) {
-        !addSubdirs( $${__RESOLVED_DIRS__} ) : break()
+defineTest( addSubdirsRecursive ) \
+{
+    for( i, 0..1000 ) \
+    {
+        !addSubdirs( $${__RESOLVED_DIRS__} ) : \
+            break()
     }
     export ( __RESOLVED_DIRS__ )
     return ( true )
@@ -36,12 +43,14 @@ defineTest( addSubdirsRecursive ) {
 # Включает все исходные файлы из заданных дирректорий
 ################################################################################
 
-defineTest( includeFilesFrom ) {
+defineTest( includeFilesFrom ) \
+{
 
     dir = "$${ARGS}"
     entries = $$files( $${dir}/* )
 
-    isEmpty( entries ) {
+    isEmpty( entries ) \
+    {
         return ( false )
     }
 
@@ -73,15 +82,14 @@ defineTest( includeFilesFrom ) {
 # Включает все исходные файлы из заданных дирректорий и их поддирректорий
 ################################################################################
 
-defineTest( includeFiles ) {
-
+defineTest( includeFiles ) \
+{
     __RESOLVED_DIRS__ = "$${ARGS}"
 
     addSubdirsRecursive()
 
-    for( dir, __RESOLVED_DIRS__ ) {
+    for( dir, __RESOLVED_DIRS__ ) : \
         includeFilesFrom( $${dir} )
-    }
 
     export( HEADERS )
     export( SOURCES )
@@ -95,24 +103,27 @@ defineTest( includeFiles ) {
     return( true )
 }
 
-defineReplace( privateJoinCommonDirectory ) {
-    common = "$$1"
-    dir = "$$2"
+defineReplace( privateJoinCommonDirectory ) \
+{
+    common = $${1}
+    dir = $${2}
 
-    isEmpty( common ) {
+    isEmpty( common ) \
+    {
         common = "$${dir}"
         return( $${common} )
     }
 
-    !isEmpty( dir ) {
+    !isEmpty( dir ) \
+    {
         common = "$$commonPathForTwoPaths( "$${common}", "$${dir}" )"
     }
     return( "$${common}" )
 }
 
-
 # Находит общую базовую директорию для всех файлов исходников
-defineReplace( commonDirectoryForSources ) {
+defineReplace( commonDirectoryForSources ) \
+{
     common =
     dir = $$commonPathForPaths( $${HEADERS} )
     common = "$$privateJoinCommonDirectory( "$${common}", "$${dir}" )"

@@ -1,12 +1,16 @@
 # Formatted date and time decimal values
 # Alternative of _DATE_
 
-defineReplace(currentDate) {
-    win32 | win64 : return( $$system( date /t ) )
+defineReplace(currentDate) \
+{
+    win32 | win64 : \
+        return( $$system( date /t ) )
     return( $$system( date "+%d.%m.%Y" ) )
 }
 
-defineReplace(currentTime) {
-    win32 | win64 : return( $$system( time /T ) )
+defineReplace(currentTime) \
+{
+    win32 | win64 : \
+        return( $$system( time /T ) )
     return( $$system( date "+%H:%M:%S" ) )
 }

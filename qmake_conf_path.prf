@@ -1,16 +1,10 @@
-# Поиск файла .qmake.conf с общей конфигурацией комплекса.
-# В результате вычисляется путь к директории и к файлу конфигурации.
-# CONFIG_DIR
-
-!load( file_system ) : error( Can not find feature \"file_system\" )
+# Finding .qmake.conf file of common complex configuration
 !load( message_logging ) : error( Can not find feature \"message_logging\" )
+!load( file_system ) : errorLogging( Can not find feature \"file_system\" )
 
-QMAKE_CONF_FILE_PWD = "$${_PRO_FILE_PWD_}"
-QMAKE_CONF_FILE_PWD = "$$replace( QMAKE_CONF_FILE_PWD, "\\\\", "/" )"
+QMAKE_CONF.pwd = $$findUpperDirectoryWith( ".qmake.conf", "$${_PRO_FILE_PWD_}" )
+QMAKE_CONF.file = "$${QMAKE_CONF.pwd}/.qmake.conf"
 
-QMAKE_CONF_FILE_PWD = $$findUpperDirectoryWith( ".qmake.conf", "$${QMAKE_CONF_FILE_PWD}" )
-QMAKE_CONF_FILE = "$${QMAKE_CONF_FILE_PWD}/.qmake.conf"
-
-# Проверяем, что .qmake.conf найден
-!exists( $${QMAKE_CONF_FILE} ) : \
+# Test of .qmake.conf file finding
+!exists( $${QMAKE_CONF.file} ) : \
     errorLogging( The file \".qmake.conf\" not found. )

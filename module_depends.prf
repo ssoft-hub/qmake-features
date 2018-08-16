@@ -1,29 +1,43 @@
 # Modules finding ...
 !load( message_logging ) : error( Can not find feature \"message_logging\" )
-!load( module_finding ) : error( Can not find feature \"module_finding\" )
+!load( module_finding ) : errorLogging( Can not find feature \"module_finding\" )
 
-defineTest( loadDependency ) {
-    for( module, ARGS ) {
-        DEPENDS -= "$${module}"
-        LOADED_DEPENDS *= "$${module}"
+defineTest( loadDependency ) \
+{
+    for( module, ARGS ) \
+    {
+        DEPENDS.progress -= "$${module}"
 
-        for( subdir, DEPEND_PATH ) {
-            project_entry = "$${subdir}/$${module}.prf"
-            exists( $${project_entry} ): \
-                break()
-        }
-        exists( $${project_entry} ) {
-            messageLogging( Load dependency $${module} from \"$${project_entry}\" )
-            include( $${project_entry} )
-        } else {
-            !isEqual( TARGET, $${module} ) : \
-                errorLogging( Can not resolve dependency $${module} )
+        !contains( DEPENDS.loaded, "$${module}" ) \
+        {
+            DEPENDS.loaded *= "$${module}"
+
+            for( subdir, DEPEND_PATH ) \
+            {
+                project_entry = "$${subdir}/$${module}.prf"
+                exists( "$${project_entry}" ): \
+                    break()
+            }
+
+            exists( "$${project_entry}" ) \
+            {
+                messageLogging( Load dependency $${module} from \"$${project_entry}\" )
+                include( "$${project_entry}" )
+                DEPENDS.progress = $${DEPENDS}
+            } \
+            else \
+            {
+                MODULE_PRF =
+                !isEqual( TARGET, "$${module}" ) : \
+                    errorLogging( Can not resolve dependency $${module} )
+            }
         }
     }
 
     # If it needs this list can be extended (in 3 places into this file)
     export( DEPENDS )
-    export( LOADED_DEPENDS )
+    export( DEPENDS.progress )
+    export( DEPENDS.loaded )
     export( CONFIG )
     export( QMAKE_CXXFLAGS )
     export( INCLUDEPATH )
@@ -42,23 +56,30 @@ defineTest( loadDependency ) {
     return( true )
 }
 
-defineTest( recursiveLoadAllDependicies ) {
-    for( tmp, 0..1000 ) {
-        !isEmpty( DEPENDS ) {
-            DEPENDS = $$unique( DEPENDS )
-            loadDependency( $${DEPENDS} )
-        } else {
+defineTest( recursiveLoadAllDependicies ) \
+{
+    for( i, 0..1000 ) \
+    {
+        !isEmpty( DEPENDS.progress ) \
+        {
+            loadDependency( $${DEPENDS.progress} )
+        } \
+        else \
+        {
             break()
         }
     }
+
     # more than
-    !isEmpty( DEPENDS ) {
+    !isEmpty( DEPENDS.progress ) \
+    {
         error(Fatal dependency resolving)
     }
 
     # If it needs this list can be extended (in 3 places into this file)
     export( DEPENDS )
-    export( LOADED_DEPENDS )
+    export( DEPENDS.progress )
+    export( DEPENDS.loaded )
     export( CONFIG )
     export( QMAKE_CXXFLAGS )
     export( INCLUDEPATH )
@@ -77,29 +98,38 @@ defineTest( recursiveLoadAllDependicies ) {
     return(true)
 }
 
-defineTest( loadDependencies ) {
+defineTest( loadDependencies ) \
+{
     # Include own dependencies
-    DEPENDS *= $${TARGET}
+    BASE_NAME = "$${TARGET}"
+    MODULE_PRF = "$${_PRO_FILE_PWD_}/$${BASE_NAME}.prf"
 
-    # Resolve dependencies
-    if ( !isEmpty( DEPENDS ) ) {
-        messageLogging( Dependencies resolving ... )
-        MODULE = $$basename(_PRO_FILE_)
-        $${MODULE}.depends = $${DEPENDS}
-        loadDependency( $${DEPENDS} )
-        recursiveLoadAllDependicies()
+    exists( "$${MODULE_PRF}" ) \
+    {
+        include( "$${MODULE_PRF}" )
+    } \
+    else \
+    {
+        DEPENDS.progress *= "$${BASE_NAME}"
     }
 
-    # Remove duplicates
-    DEPENDS = $$unique( DEPENDS )
-    LOADED_DEPENDS = $$unique( LOADED_DEPENDS )
+    DEPENDS.progress *= $${DEPENDS}
+
+    # Resolve dependencies
+    if ( !isEmpty( DEPENDS ) ) \
+    {
+        messageLogging( Dependencies resolving ... )
+        loadDependency( $${DEPENDS.progress} )
+        recursiveLoadAllDependicies()
+    }
 
     # Delete self
     LIBS -= -l$${TARGET}
 
     # If it needs this list can be extended (in 3 places into this file)
     export( DEPENDS )
-    export( LOADED_DEPENDS )
+    export( DEPENDS.progress )
+    export( DEPENDS.loaded )
     export( CONFIG )
     export( QMAKE_CXXFLAGS )
     export( INCLUDEPATH )
@@ -119,4 +149,5 @@ defineTest( loadDependencies ) {
 }
 
 # global
-loadDependencies()
+loadDependencies() : \
+    messageLogging( Dependencies resolving completed )

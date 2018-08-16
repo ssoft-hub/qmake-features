@@ -1,21 +1,26 @@
 !load( message_logging ) : error( Can not find feature \"message_logging\" )
 
-defineTest( appendDependencyDirectories ) {
+defineTest( appendDependencyDirectories ) \
+{
     unset( DEPEND_PATH_LAYER )
-    for( subdir, ARGS ) {
+    for( subdir, ARGS ) \
+    {
         entries = $$files( "$${subdir}/*" )
-        for( entry, entries ) {
-            entry = $$replace( entry, "\\\\", "/" )
+        for( entry, entries ) \
+        {
+            entry = "$$replace( entry, "\\\\", "/" )"
             sub_entries = $$files( "$${entry}/*" )
 
-            !isEmpty( sub_entries ) {
+            !isEmpty( sub_entries ) \
+            {
                 DEPEND_PATH_LAYER *= "$${entry}"
 
                 project_entry = "$${entry}/*.prf"
                 sub_entries = $$files( "$${project_entry}" )
 
                 # Если хоть один файл существует, то запоминаем директорию
-                !isEmpty( sub_entries ) {
+                !isEmpty( sub_entries ) \
+                {
                     DEPEND_PATH *= "$${entry}"
                 }
             }
@@ -29,9 +34,11 @@ defineTest( appendDependencyDirectories ) {
     return( true )
 }
 
-defineTest( recursiveDefineDependencyDirectories ) {
+defineTest( recursiveDefineDependencyDirectories ) \
+{
     DEPEND_PATH_LAYER = $${DEPEND_PATH}
-    for( layer, 0..100 ) {
+    for( i, 0..1000 ) \
+    {
         !appendDependencyDirectories( $${DEPEND_PATH_LAYER} ) : \
             break()
     }
@@ -41,13 +48,16 @@ defineTest( recursiveDefineDependencyDirectories ) {
 
 # Main
 # Поиск общей конфигурации
-!load( qmake_conf_path ) : error( Can not find feature \"qmake_conf_path\" )
+!load( qmake_conf_path ) : errorLogging( Can not find feature \"qmake_conf_path\" )
 
 # Попытка загрузить кеш с перечнем модулей
-win32 | win64 {
-    DEPENDS_CACHE_FILE = "$${QMAKE_CONF_FILE_PWD}\\.depends.cache"
-} else {
-    DEPENDS_CACHE_FILE = "$${QMAKE_CONF_FILE_PWD}/.depends.cache"
+win32 | win64 \
+{
+    DEPENDS_CACHE_FILE = "$${QMAKE_CONF.pwd}\\.depends.cache"
+} \
+else \
+{
+    DEPENDS_CACHE_FILE = "$${QMAKE_CONF.pwd}/.depends.cache"
 }
 
 # Если нужно сформировать кэш, то текущий не используется
@@ -58,11 +68,14 @@ contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) : \
 !contains( DEPENDS_CACHE_CONFIG, unuse_depends_cache ) \
 {
     # При наличии файла
-    exists( $${DEPENDS_CACHE_FILE} ) {
+    exists( $${DEPENDS_CACHE_FILE} ) \
+    {
         # Зачитываем
         messageLogging( Load cached path from $${DEPENDS_CACHE_FILE}. )
         include( $${DEPENDS_CACHE_FILE} )
-    } else {
+    } \
+    else \
+    {
         # или помечаем, что не используем кэш
         DEPENDS_CACHE_CONFIG *= unuse_depends_cache
     }
@@ -72,11 +85,12 @@ contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) : \
 contains( DEPENDS_CACHE_CONFIG, unuse_depends_cache ) \
 {
     # Осуществляем рекурсивный поиск модулей
-    DEPEND_PATH = "$$replace( QMAKE_CONF_FILE_PWD, "\\\\" , "/" )"
+    DEPEND_PATH = "$$replace( QMAKE_CONF.pwd, "\\\\" , "/" )"
     recursiveDefineDependencyDirectories()
 
     # Выводим сообщения о найденных модулях
-    for( subdir, DEPEND_PATH ) {
+    for( subdir, DEPEND_PATH ) \
+    {
         messageLogging( Find modules into: $${subdir} )
     }
 }
@@ -90,5 +104,5 @@ contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) \
     makeEmptyFile( "$${DEPENDS_CACHE_FILE}" )
     appendToFile( "$${DEPENDS_CACHE_FILE}", "DEPEND_PATH = \\" )
     for( module_path, DEPEND_PATH ) : \
-        appendToFile( "$${DEPENDS_CACHE_FILE}", "$${module_path} \\" )
+        appendToFile( "$${DEPENDS_CACHE_FILE}", \""$${module_path}\" \\" )
 }

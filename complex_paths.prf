@@ -1,68 +1,102 @@
 # Paths of complex and module building
 !load( message_logging ) : error( Can not find feature \"message_logging\" )
-!load( qmake_conf_path ) : error( Can not find feature \"qmake_conf_path\" )
+!load( qmake_conf_path ) : errorLogging( Can not find feature \"qmake_conf_path\" )
+!load( file_system ) : errorLogging( Can not find feature \"file_system\" )
 
-COMPLEX.pwd= "$${QMAKE_CONF_FILE_PWD}"
-COMPLEX.compiler = $${QMAKE_CC}
-COMPLEX.tool = "$$lower($${MAKEFILE_GENERATOR})"
-COMPLEX.arch = "$${QMAKE_HOST.arch}"
+defineTest(defineComplexPaths) \
+{
+    COMPLEX.pwd= "$$cleanPath( "$${QMAKE_CONF.pwd}" )"
+    COMPLEX.compiler = "$${QMAKE_CC}"
+    COMPLEX.tool = "$$lower($${MAKEFILE_GENERATOR})"
+    COMPLEX.arch = "$${QMAKE_HOST.arch}"
 
-contains( COMPLEX.compiler, gcc ) {
-    COMPLEX.compiler = gcc
-    GCC_VERSION = $$system("gcc -dumpversion")
-    !isEmpty( GCC_VERSION ) : COMPLEX.compiler = "$${COMPLEX.compiler}.$${GCC_VERSION}"
-}
-
-COMPLEX.qt_version = $${QT_VERSION}
-COMPLEX.base_dir = "qt.$${COMPLEX.qt_version}-$${COMPLEX.tool}-$${COMPLEX.compiler}-$${COMPLEX.arch}"
-
-messageLogging( Complex base dir: $${COMPLEX.base_dir} )
-
-CONFIG( debug, debug|release ) {
-    COMPLEX.config = debug
-} else {
-    COMPLEX.config = release
-}
-
-COMPLEX.dest_dir = "$${COMPLEX.pwd}/bin/$${COMPLEX.base_dir}/$${COMPLEX.config}"
-COMPLEX.gen_dir = "$${COMPLEX.pwd}/build/$${COMPLEX.base_dir}/$${COMPLEX.config}"
-
-temp_pwd = $${_PRO_FILE_PWD_}
-check_temp_pwd = $${_PRO_FILE_PWD_}
-check_pwd = $${COMPLEX.pwd}
-
-win32* {
-    check_pwd = $$lower( $${check_pwd} )
-    check_temp_pwd = $$lower( $${check_temp_pwd} )
-}
-
-for( tmp, 0..100 ) {
-    isEqual( check_temp_pwd, $${check_pwd} ) : \
-        break()
-    isEmpty( MODULE.base_dir ) {
-        MODULE.base_dir = "$$basename(temp_pwd)"
-    } else {
-        MODULE.base_dir = "$$basename(temp_pwd)/$${MODULE.base_dir}"
+    contains( COMPLEX.compiler, gcc ) \
+    {
+        COMPLEX.compiler = gcc
+        GCC.version = $$system("gcc -dumpversion")
+        !isEmpty( GCC.version ) : COMPLEX.compiler = "$${COMPLEX.compiler}.$${GCC.version}"
     }
-    temp_pwd = "$$dirname( temp_pwd )"
-    check_temp_pwd = "$$dirname( check_temp_pwd )"
-    isEmpty( check_temp_pwd ) : \
-        errorLogging( This project is not a part of $${COMPLEX.pwd} complex. )
+
+    COMPLEX.qt_version = $${QT_VERSION}
+    COMPLEX.base_dir = "qt.$${COMPLEX.qt_version}-$${COMPLEX.tool}-$${COMPLEX.compiler}-$${COMPLEX.arch}"
+
+    CONFIG( debug, debug|release ) \
+    {
+        COMPLEX.config = debug
+    } \
+    else \
+    {
+        COMPLEX.config = release
+    }
+
+    COMPLEX.dest_dir = "$${COMPLEX.pwd}/bin/$${COMPLEX.base_dir}/$${COMPLEX.config}"
+    COMPLEX.gen_dir = "$${COMPLEX.pwd}/build/$${COMPLEX.base_dir}/$${COMPLEX.config}"
+
+    temp_pwd = $${_PRO_FILE_PWD_}
+    check_temp_pwd = $${_PRO_FILE_PWD_}
+    check_pwd = $${COMPLEX.pwd}
+
+    win32 | win64 \
+    {
+        check_pwd = $$lower( $${check_pwd} )
+        check_temp_pwd = $$lower( $${check_temp_pwd} )
+    }
+
+    for( i, 0..1000 ) \
+    {
+        isEqual( check_temp_pwd, $${check_pwd} ) : \
+            break()
+
+        isEmpty( MODULE.base_dir ) \
+        {
+            MODULE.base_dir = "$$basename(temp_pwd)"
+        } \
+        else \
+        {
+            MODULE.base_dir = "$$basename(temp_pwd)/$${MODULE.base_dir}"
+        }
+
+        temp_pwd = "$$dirname( temp_pwd )"
+        check_temp_pwd = "$$dirname( check_temp_pwd )"
+        isEmpty( check_temp_pwd ) \
+        {
+            errorLogging( This project is not a part of $${COMPLEX.pwd} complex. )
+            return( false )
+        }
+    }
+
+    DESTDIR = "$${COMPLEX.dest_dir}"
+    MODULE.gen_dir = "$${COMPLEX.gen_dir}/$${MODULE.base_dir}"
+    LIBS *= "-L$${COMPLEX.dest_dir}"
+
+    OBJECTS_DIR = "$${MODULE.gen_dir}/obj"
+    # Qt4: mocinclude.tmp find issue
+    greaterThan( QT_MAJOR_VERSION, 4 ) : \
+        MOC_DIR = "$${MODULE.gen_dir}/moc"
+    RCC_DIR = "$${MODULE.gen_dir}/rcc"
+    UI_DIR = "$${MODULE.gen_dir}/ui"
+
+    export( DESTDIR )
+    export( OBJECTS_DIR )
+    export( LIBS )
+    export( MOC_DIR )
+    export( RCC_DIR )
+    export( UI_DIR )
+
+    export( COMPLEX.arch )
+    export( COMPLEX.base_dir )
+    export( COMPLEX.compiler )
+    export( COMPLEX.config )
+    export( COMPLEX.dest_dir )
+    export( COMPLEX.gen_dir )
+    export( COMPLEX.pwd )
+    export( COMPLEX.qt_version )
+    export( COMPLEX.tool )
+    export( MODULE.base_dir )
+    export( MODULE.gen_dir )
+
+    return( true )
 }
 
-DESTDIR = "$${COMPLEX.dest_dir}"
-MODULE.gen_dir = "$${COMPLEX.gen_dir}/$${MODULE.base_dir}"
-
-LIBS *= "-L$${DESTDIR}"
-
-OBJECTS_DIR = "$${MODULE.gen_dir}/obj"
-# Qt4: mocinclude.tmp find issue
-greaterThan( QT_MAJOR_VERSION, 4 ) : \
-    MOC_DIR = "$${MODULE.gen_dir}/moc"
-RCC_DIR = "$${MODULE.gen_dir}/rcc"
-UI_DIR = "$${MODULE.gen_dir}/ui"
-
-unset( temp_pwd )
-unset( check_temp_pwd )
-unset( check_pwd )
-unset( tmp )
+!defineComplexPaths() : \
+    errorLogging( Can not define complex paths. )

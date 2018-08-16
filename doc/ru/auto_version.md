@@ -149,7 +149,7 @@ A           версия a1(a1)a1     ok
 
 ```pro
 CONFIG *= skip_target_version_ext
-DEFINES *= QMAKE_AUTO_VERSION_USED
+DEFINES *= AUTO_VERSION_USED
 VERSION = $${AUTO_VERSION.major}.$${AUTO_VERSION.minor}.$${AUTO_VERSION.patch}
 HEADERS *= "$${AUTO_VERSION.header_file}"
 SOURCES *= "$${AUTO_VERSION.source_file}"
@@ -270,7 +270,7 @@ void foo ()
 Полное дерево версий может быть выведено, например, с помощью такого кода
 
 ```cpp
-#ifdef QMAKE_AUTO_VERSION_USED
+#ifdef AUTO_VERSION_USED
 
 #include <AutoVersion.h>
 #include <iostream>
