@@ -169,17 +169,17 @@ defineTest( isRelativePath ) \
     win32 | win64 \
     {
         test_value = $$replace( test_path, ":", "/" )
+        isEqual( test_path, "$${test_value}" ) : \
+            return( true )
     } \
     else \
     {
         test_value = ":$${test_path}"
         test_value = $$replace( test_value, ":/", "/" )
+        isEqual( test_path, "$${test_value}" ) : \
+            return( false )
     }
-
-    !isEqual( test_path, "$${test_value}" ) : \
-        return( false )
-
-    return( true )
+    return( false )
 }
 
 defineReplace( absolutePath ) \
