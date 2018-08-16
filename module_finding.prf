@@ -1,4 +1,5 @@
 !load( message_logging ) : error( Can not find feature \"message_logging\" )
+!load( qmake_conf_path ) : errorLogging( Can not find feature \"qmake_conf_path\" )
 
 defineTest( appendDependencyDirectories ) \
 {
@@ -47,9 +48,6 @@ defineTest( recursiveDefineDependencyDirectories ) \
 }
 
 # Main
-# Поиск общей конфигурации
-!load( qmake_conf_path ) : errorLogging( Can not find feature \"qmake_conf_path\" )
-
 # Попытка загрузить кеш с перечнем модулей
 win32 | win64 \
 {

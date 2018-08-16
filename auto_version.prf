@@ -4,6 +4,7 @@
 !load( build_moment ) : errorLogging( "Can not find feature \"build_moment\"" )
 !load( complex_paths ) : errorLogging( "Can not find feature \"complex_paths\"" )
 !load( git_version ) : errorLogging( "Can not find feature \"git_version\"" )
+!load( svn_version ) : errorLogging( "Can not find feature \"svn_version\"" )
 
 defineTest( generateAutoVersionFiles ) \
 {
@@ -29,7 +30,6 @@ defineTest( generateAutoVersionFiles ) \
 
     isEmpty( AUTO_VERSION.revision ) \
     {
-        !load( svn_version ) : errorLogging( "Can not find feature \"svn_version\"" )
         AUTO_VERSION.version = $${SVN.version}
         AUTO_VERSION.revision = $${SVN.revision}
         AUTO_VERSION.branch = $${SVN.branch}
