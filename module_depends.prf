@@ -149,5 +149,4 @@ defineTest( loadDependencies ) \
 }
 
 # global
-loadDependencies() : \
-    messageLogging( Dependencies resolving completed )
+loadDependencies()

@@ -6,15 +6,33 @@
 defineTest(defineComplexPaths) \
 {
     COMPLEX.pwd= "$$cleanPath( "$${QMAKE_CONF.pwd}" )"
-    COMPLEX.compiler = "$${QMAKE_CC}"
+    COMPLEX.compiler = $$member( QMAKE_CC, -1 )
     COMPLEX.tool = "$$lower($${MAKEFILE_GENERATOR})"
     COMPLEX.arch = "$${QMAKE_HOST.arch}"
 
-    contains( COMPLEX.compiler, gcc ) \
+    isEqual( COMPLEX.compiler, gcc ) \
     {
-        COMPLEX.compiler = gcc
         GCC.version = $$system("gcc -dumpversion")
-        !isEmpty( GCC.version ) : COMPLEX.compiler = "$${COMPLEX.compiler}.$${GCC.version}"
+        !isEmpty( GCC.version ) : \
+            COMPLEX.compiler = "$${COMPLEX.compiler}.$${GCC.version}"
+    }
+
+    isEqual( COMPLEX.compiler, cl ) \
+    {
+        CL.info = $$system( "cl" )
+
+        unset( previous_value )
+        for ( current_value, CL.info ) \
+        {
+            isEqual( previous_value, "Version" ) \
+            {
+                CL.version = $${current_value}
+                break()
+            }
+        }
+
+        !isEmpty( CL.version ) : \
+            COMPLEX.compiler = "$${COMPLEX.compiler}.$${CL.version}"
     }
 
     COMPLEX.qt_version = $${QT_VERSION}

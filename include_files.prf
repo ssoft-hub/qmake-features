@@ -1,70 +1,54 @@
 !load( message_logging ) : error( Can not find feature \"message_logging\" )
 !load( file_system ) : errorLogging( Can not find feature \"file_system\" )
 
-# Сооставлят список поддиректорий до 10 уровней вложености
-################################################################################
-
-defineTest( addSubdirs ) \
-{
-    result = false
-
-    for( subdir, ARGS ) \
-    {
-        entries = $$files( $${subdir}/* )
-        for( entry, entries ) \
-        {
-            sub_entries = $$files( $${entry}/* )
-
-            !isEmpty( sub_entries ) \
-            {
-                !contains( __RESOLVED_DIRS__, "$${entry}" ) \
-                {
-                    __RESOLVED_DIRS__ *= "$${entry}"
-                    result = true
-                }
-            }
-        }
-    }
-    export( __RESOLVED_DIRS__ )
-    return( $${result} )
-}
-
-defineTest( addSubdirsRecursive ) \
-{
-    for( i, 0..1000 ) \
-    {
-        !addSubdirs( $${__RESOLVED_DIRS__} ) : \
-            break()
-    }
-    export ( __RESOLVED_DIRS__ )
-    return ( true )
-}
-
-# Включает все исходные файлы из заданных дирректорий
-################################################################################
 
 defineTest( includeFilesFrom ) \
 {
+    directories = $${1}
+    flag = $${2}
 
-    dir = "$${ARGS}"
-    entries = $$files( $${dir}/* )
-
-    isEmpty( entries ) \
+    unset( result )
+    for( i, 0..1000 ) \
     {
-        return ( false )
-    }
+        unset( next_directories )
+        isEmpty( directories ) : \
+            break()
 
-    HEADERS *= $$files( $${dir}/*.h )
-    HEADERS *= $$files( $${dir}/*.hpp )
-    SOURCES *= $$files( $${dir}/*.c )
-    SOURCES *= $$files( $${dir}/*.cpp )
-    FORMS *= $$files( $${dir}/*.ui )
-    LEXSOURCES *= $$files( $${dir}/*.l )
-    RES_FILE *= $$files( $${dir}/*.rc )
-    RESOURCES *= $$files( $${dir}/*.qrc )
-    TRANSLATIONS *= $$files( $${dir}/*.ts )
-    DISTFILES *= $$files( $${dir}/*.vert )
-    DISTFILES *= $$files( $${dir}/*.frag )
+        for( directory, directories ) \
+        {
+            entries = $$files( "$${directory}/*" )
+            !isEmpty( entries ) \
+            {
+                HEADERS *= $$files( $${directory}/*.h )
+                HEADERS *= $$files( $${directory}/*.hpp )
+                SOURCES *= $$files( $${directory}/*.c )
+                SOURCES *= $$files( $${directory}/*.cpp )
+                FORMS *= $$files( $${directory}/*.ui )
+                LEXSOURCES *= $$files( $${directory}/*.l )
+                RES_FILE *= $$files( $${directory}/*.rc )
+                RESOURCES *= $$files( $${directory}/*.qrc )
+                TRANSLATIONS *= $$files( $${directory}/*.ts )
+                DISTFILES *= $$files( $${directory}/*.vert )
+                DISTFILES *= $$files( $${directory}/*.frag )
+                DISTFILES *= $$files( $${directory}/*.qml )
+                DISTFILES *= $$files( $${directory}/*.js )
+            }
+
+            for( entry, entries ) \
+            {
+                entry_files = $$files( "$${entry}/*" )
+                !isEmpty( entry_files ) \
+                {
+                    next_directories *= "$${entry}"
+                    result *= "$${entry}"
+                }
+            }
+        }
+        !isEqual( flag, "recursive" ) : \
+            break()
+
+        directories = $${next_directories}
+    }
 
     export( HEADERS )
     export( SOURCES )
@@ -78,67 +62,48 @@ defineTest( includeFilesFrom ) \
     return( true )
 }
 
-
-# Включает все исходные файлы из заданных дирректорий и их поддирректорий
-################################################################################
-
 defineTest( includeFiles ) \
 {
-    __RESOLVED_DIRS__ = "$${ARGS}"
-
-    addSubdirsRecursive()
-
-    for( dir, __RESOLVED_DIRS__ ) : \
-        includeFilesFrom( $${dir} )
-
-    export( HEADERS )
-    export( SOURCES )
-    export( FORMS )
-    export( LEXSOURCES )
-    export( RES_FILE )
-    export( RESOURCES )
-    export( TRANSLATIONS )
-    export( DISTFILES )
-
-    return( true )
+    includeFilesFrom( $${1}, recursive ) : \
+        return( true )
+    return( false )
 }
 
 defineReplace( privateJoinCommonDirectory ) \
 {
-    common = $${1}
-    dir = $${2}
+    result = $${1}
+    directory = $${2}
 
-    isEmpty( common ) \
+    isEmpty( result ) \
     {
-        common = "$${dir}"
-        return( $${common} )
+        result = "$${directory}"
+        return( $${result} )
     }
 
-    !isEmpty( dir ) \
+    !isEmpty( directory ) \
     {
-        common = "$$commonPathForTwoPaths( "$${common}", "$${dir}" )"
+        result = "$$commonPathForTwoPaths( "$${result}", "$${directory}" )"
     }
-    return( "$${common}" )
+    return( "$${result}" )
 }
 
-# Находит общую базовую директорию для всех файлов исходников
 defineReplace( commonDirectoryForSources ) \
 {
-    common =
-    dir = $$commonPathForPaths( $${HEADERS} )
-    common = "$$privateJoinCommonDirectory( "$${common}", "$${dir}" )"
-    dir = $$commonPathForPaths( $${SOURCES} )
-    common = "$$privateJoinCommonDirectory( "$${common}", "$${dir}" )"
-    dir = $$commonPathForPaths( $${LEXSOURCES} )
-    common = "$$privateJoinCommonDirectory( "$${common}", "$${dir}" )"
-    dir = $$commonPathForPaths( $${RES_FILE} )
-    common = "$$privateJoinCommonDirectory( "$${common}", "$${dir}" )"
-    dir = $$commonPathForPaths( $${RESOURCES} )
-    common = "$$privateJoinCommonDirectory( "$${common}", "$${dir}" )"
-    dir = $$commonPathForPaths( $${TRANSLATIONS} )
-    common = "$$privateJoinCommonDirectory( "$${common}", "$${dir}" )"
-    dir = $$commonPathForPaths( $${DISTFILES} )
-    common = "$$privateJoinCommonDirectory( "$${common}", "$${dir}" )"
+    unset( result )
+    directory = $$commonPathForPaths( $${HEADERS} )
+    result = "$$privateJoinCommonDirectory( "$${result}", "$${directory}" )"
+    directory = $$commonPathForPaths( $${SOURCES} )
+    result = "$$privateJoinCommonDirectory( "$${result}", "$${directory}" )"
+    directory = $$commonPathForPaths( $${LEXSOURCES} )
+    result = "$$privateJoinCommonDirectory( "$${result}", "$${directory}" )"
+    directory = $$commonPathForPaths( $${RES_FILE} )
+    result = "$$privateJoinCommonDirectory( "$${result}", "$${directory}" )"
+    directory = $$commonPathForPaths( $${RESOURCES} )
+    result = "$$privateJoinCommonDirectory( "$${result}", "$${directory}" )"
+    directory = $$commonPathForPaths( $${TRANSLATIONS} )
+    result = "$$privateJoinCommonDirectory( "$${result}", "$${directory}" )"
+    directory = $$commonPathForPaths( $${DISTFILES} )
+    result = "$$privateJoinCommonDirectory( "$${result}", "$${directory}" )"
 
-    return( "$${common}" )
+    return( "$${result}" )
 }

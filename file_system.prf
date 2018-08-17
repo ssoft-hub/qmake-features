@@ -168,14 +168,14 @@ defineTest( isRelativePath ) \
 
     win32 | win64 \
     {
-        test_value = $$replace( test_path, ":", "/" )
+        test_value = "$$replace( test_path, ":", "%" )"
         isEqual( test_path, "$${test_value}" ) : \
             return( true )
     } \
     else \
     {
-        test_value = ":$${test_path}"
-        test_value = $$replace( test_value, ":/", "/" )
+        test_value = "%$${test_path}"
+        test_value = "$$replace( test_value, "%/", "/" )"
         isEqual( test_path, "$${test_value}" ) : \
             return( false )
     }
@@ -185,7 +185,7 @@ defineTest( isRelativePath ) \
 defineReplace( absolutePath ) \
 {
     isRelativePath( "$${1}" ) : \
-        return( "$${_PRO_FILE_PWD_}/$${1}")
+        return( "$${_PRO_FILE_PWD_}/$${1}" )
     return ( "$${1}" )
 }
 
@@ -299,4 +299,35 @@ defineReplace( commonPathForPaths ) \
         }
     }
     return( "$${result}" )
+}
+
+defineReplace( subDirectories ) \
+{
+    directories = $${1}
+    flag = $${2}
+
+    unset( result )
+    for( i, 0..1000 ) \
+    {
+        unset( next_directories )
+        for( directory, directories ) \
+        {
+            entries = $$files( "$${directory}/*" )
+            for( entry, entries ) \
+            {
+                sub_entries = $$files( "$${entry}/*" )
+                !isEmpty( sub_entries ) \
+                {
+                    next_directories *= "$${entry}"
+                    result *= "$${entry}"
+                }
+            }
+        }
+        directories = $${next_directories}
+
+        !isEqual( flag, "recursive" ) : \
+            break()
+    }
+
+    return( $${result} )
 }

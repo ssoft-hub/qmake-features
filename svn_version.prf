@@ -35,6 +35,7 @@ defineTest( defineSvnVersion ) \
 
     SVN.info = $$system( cd \"$${SVN.pwd}\" && svn info )
 
+    unset( previous_value )
     for( current_value, SVN.info ) \
     {
         isEqual( previous_value, "Rev:" ) : \
