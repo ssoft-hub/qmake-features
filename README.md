@@ -9,7 +9,7 @@
 Подключить фитчи в виде подмодуля в проект в папку project/qmake/features можно с помощью команды:
 
 ```bash
-git submodule add --name qmake-features git@gitlab.topaz-atcs.com:lemzsdk/qmake-features.git project/qmake/features
+git submodule add --name qmake-features [url] project/qmake/features
 ```
 
 Можно использовать любой другой путь вместо project/qmake/features, если требуется другое размещение.
