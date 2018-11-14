@@ -32,6 +32,9 @@ defineTest( includeFilesFrom ) \
                 DISTFILES *= $$files( $${directory}/*.frag )
                 DISTFILES *= $$files( $${directory}/*.qml )
                 DISTFILES *= $$files( $${directory}/*.js )
+                STATECHARTS *= $$files( $${directory}/*.scxml )
+                OTHER_FILES *= $$files( $${directory}/*.qmodel )
+                OTHER_FILES *= $$files( $${directory}/*.md )
             }
 
             for( entry, entries ) \
@@ -58,6 +61,8 @@ defineTest( includeFilesFrom ) \
     export( RESOURCES )
     export( TRANSLATIONS )
     export( DISTFILES )
+    export( STATECHARTS )
+    export( OTHER_FILES )
 
     return( true )
 }
@@ -103,6 +108,10 @@ defineReplace( commonDirectoryForSources ) \
     directory = $$commonPathForPaths( $${TRANSLATIONS} )
     result = "$$privateJoinCommonDirectory( "$${result}", "$${directory}" )"
     directory = $$commonPathForPaths( $${DISTFILES} )
+    result = "$$privateJoinCommonDirectory( "$${result}", "$${directory}" )"
+    directory = $$commonPathForPaths( $${STATECHARTS} )
+    result = "$$privateJoinCommonDirectory( "$${result}", "$${directory}" )"
+    directory = $$commonPathForPaths( $${OTHER_FILES} )
     result = "$$privateJoinCommonDirectory( "$${result}", "$${directory}" )"
 
     return( "$${result}" )
