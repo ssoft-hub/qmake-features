@@ -5,10 +5,11 @@
 
 defineTest(defineComplexPaths) \
 {
-    COMPLEX.pwd= "$$cleanPath( "$${QMAKE_CONF.pwd}" )"
+    COMPLEX.pwd = "$$cleanPath( "$${QMAKE_CONF.pwd}" )"
     COMPLEX.compiler = $$member( QMAKE_CC, -1 )
     COMPLEX.tool = "$$lower($${MAKEFILE_GENERATOR})"
     COMPLEX.arch = "$${QMAKE_HOST.arch}"
+    COMPLEX.base_dir =
 
     isEqual( COMPLEX.compiler, gcc ) \
     {
@@ -36,7 +37,34 @@ defineTest(defineComplexPaths) \
     }
 
     COMPLEX.qt_version = $${QT_VERSION}
-    COMPLEX.base_dir = "qt.$${COMPLEX.qt_version}-$${COMPLEX.tool}-$${COMPLEX.compiler}-$${COMPLEX.arch}"
+
+    !contains( COMPLEX.ignore, qt_version ) \
+    {
+        !isEmpty( COMPLEX.base_dir ) : \
+            COMPLEX.base_dir = "$${COMPLEX.base_dir}-"
+        COMPLEX.base_dir = "$${COMPLEX.base_dir}qt.$${COMPLEX.qt_version}"
+    }
+
+    !contains( COMPLEX.ignore, tool ) \
+    {
+        !isEmpty( COMPLEX.base_dir ) : \
+            COMPLEX.base_dir = "$${COMPLEX.base_dir}-"
+        COMPLEX.base_dir = "$${COMPLEX.base_dir}$${COMPLEX.tool}"
+    }
+
+    !contains( COMPLEX.ignore, compiler ) \
+    {
+        !isEmpty( COMPLEX.base_dir ) : \
+            COMPLEX.base_dir = "$${COMPLEX.base_dir}-"
+        COMPLEX.base_dir = "$${COMPLEX.base_dir}$${COMPLEX.compiler}"
+    }
+
+    !contains( COMPLEX.ignore, arch ) \
+    {
+        !isEmpty( COMPLEX.base_dir ) : \
+            COMPLEX.base_dir = "$${COMPLEX.base_dir}-"
+        COMPLEX.base_dir = "$${COMPLEX.base_dir}$${COMPLEX.arch}"
+    }
 
     CONFIG( debug, debug|release ) \
     {
