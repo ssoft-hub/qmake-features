@@ -9,7 +9,7 @@ defineTest( appendDependencyDirectories ) \
         entries = $$files( "$${subdir}/*" )
         for( entry, entries ) \
         {
-            entry = "$$replace( entry, "\\\\", "/" )"
+            win32 : entry = "$$replace( entry, "\\\\", "/" )"
             sub_entries = $$files( "$${entry}/*" )
 
             !isEmpty( sub_entries ) \
@@ -83,7 +83,8 @@ contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) : \
 contains( DEPENDS_CACHE_CONFIG, unuse_depends_cache ) \
 {
     # Осуществляем рекурсивный поиск модулей
-    DEPEND_PATH = "$$replace( QMAKE_CONF.pwd, "\\\\" , "/" )"
+    DEPEND_PATH = "$${QMAKE_CONF.pwd}"
+    win32 : DEPEND_PATH = "$$replace( DEPEND_PATH, "\\\\", "/" )"
     recursiveDefineDependencyDirectories()
 
     # Выводим сообщения о найденных модулях

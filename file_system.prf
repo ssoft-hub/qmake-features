@@ -194,7 +194,7 @@ defineReplace( cleanPath ) \
     lessThan( QT_MAJOR_VERSION, 5 ) \
     {
         result = "$${1}"
-        result = "$$replace( result, "\\\\", "/" )"
+        win32 : result = "$$replace( result, "\\\\", "/" )"
         result = "$$replace( result, "//", "/" )"
         result = "$$absolutePath( "$${result}" )"
         result_list = $$split( result, "/" )

@@ -23,7 +23,7 @@ defineTest(defineComplexPaths) \
         CL.info = $$system( "cl" )
 
         unset( previous_value )
-        for ( current_value, CL.info ) \
+        for( current_value, CL.info ) \
         {
             isEqual( previous_value, "Version" ) \
             {
