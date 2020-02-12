@@ -178,7 +178,6 @@ namespace AutoVersion
         if ( compile_time_info.product == run_time_info.product
             && compile_time_info.version == run_time_info.version
             && compile_time_info.revision_moment == run_time_info.revision_moment
-            && compile_time_info.compile_moment == run_time_info.compile_moment
             && compile_time_info.vendor == run_time_info.vendor
             && compile_time_info.copyright == run_time_info.copyright
             && compile_time_info.license == run_time_info.license
