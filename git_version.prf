@@ -26,10 +26,11 @@ defineTest( defineGitVersion ) \
     GIT.version = $$system( cd \"$${GIT.pwd}\" && git describe )
     GIT.branch = $$system( cd \"$${GIT.pwd}\" && git symbolic-ref --short HEAD )
     GIT.revision = $$system( cd \"$${GIT.pwd}\" && git rev-parse --short HEAD )
+    GIT.revision_moment = $$system( cd \"$${GIT.pwd}\" && git show -s --format=%ci )
 
     !isEmpty( GIT.revision ) \
     {
-        messageLogging( "Git version of $${TARGET} \($${GIT.pwd}\) is \"$${GIT.version}\", revision is \"$${GIT.revision}\", branch is \"$${GIT.branch}\"." )
+        messageLogging( "Git version of $${TARGET} \($${GIT.pwd}\) is \"$${GIT.version}\", revision is \"$${GIT.revision}\", branch is \"$${GIT.branch}\", date is \"$${GIT.revision_moment}\"." )
 
         DEFINES *= \
             GIT_VERSION=\\\"$${GIT.version}\\\" \
@@ -42,6 +43,7 @@ defineTest( defineGitVersion ) \
     export( GIT.branch )
     export( GIT.pwd )
     export( GIT.revision )
+    export( GIT.revision_moment )
     export( GIT.version )
 
     return( true )

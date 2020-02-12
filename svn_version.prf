@@ -38,6 +38,18 @@ defineTest( defineSvnVersion ) \
     unset( previous_value )
     for( current_value, SVN.info ) \
     {
+        !isEmpty( SVN.time ) : \
+            isEmpty( SVN.time_zone ) \
+                SVN.time_zone = $${current_value}
+
+        !isEmpty( SVN.date ) : \
+            isEmpty( SVN.time ) \
+                SVN.time = $${current_value}
+
+        isEqual( previous_value, "Date:" ) : \
+            isEmpty( SVN.date ) \
+                SVN.date = $${current_value}
+
         isEqual( previous_value, "Rev:" ) : \
             SVN.revision = $${current_value}
 
@@ -51,6 +63,8 @@ defineTest( defineSvnVersion ) \
 
         previous_value = $${current_value}
     }
+
+    SVN.revision_moment = "$${SVN.date} $${SVN.time} $${SVN.time_zone}"
 
     isEmpty( SVN.revision ) : \
         return( false )
@@ -78,13 +92,14 @@ defineTest( defineSvnVersion ) \
         SVN_REVISION=\\\"$${SVN.revision}\\\" \
 
     !isEmpty( SVN.revision ) : \
-        messageLogging( "Svn version of $${TARGET} \($${SVN.pwd}\) is \"$${SVN.version}\", revision is \"$${SVN.revision}\", branch is \"$${SVN.branch}\"." )
+        messageLogging( "Svn version of $${TARGET} \($${SVN.pwd}\) is \"$${SVN.version}\", revision is \"$${SVN.revision}\", branch is \"$${SVN.branch}\", date is \"$${SVN.revision_moment}\"." )
 
     export( DEFINES )
 
     export( SVN.branch )
     export( SVN.pwd )
     export( SVN.revision )
+    export( SVN.revision_moment )
     export( SVN.version )
 
     return( true )

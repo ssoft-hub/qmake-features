@@ -23,20 +23,21 @@ defineTest( generateAutoVersionFiles ) \
 
     isEmpty( AUTO_VERSION.revision ) \
     {
-        AUTO_VERSION.version = $${GIT.version}
-        AUTO_VERSION.revision = $${GIT.revision}
-        AUTO_VERSION.branch = $${GIT.branch}
+        AUTO_VERSION.version = "$${GIT.version}"
+        AUTO_VERSION.revision = "$${GIT.revision}"
+        AUTO_VERSION.branch = "$${GIT.branch}"
+        AUTO_VERSION.revision_moment = "$${GIT.revision_moment}"
     }
 
     isEmpty( AUTO_VERSION.revision ) \
     {
-        AUTO_VERSION.version = $${SVN.version}
-        AUTO_VERSION.revision = $${SVN.revision}
-        AUTO_VERSION.branch = $${SVN.branch}
+        AUTO_VERSION.version = "$${SVN.version}"
+        AUTO_VERSION.revision = "$${SVN.revision}"
+        AUTO_VERSION.branch = "$${SVN.branch}"
+        AUTO_VERSION.revision_moment = "$${SVN.revision_moment}"
     }
 
-    AUTO_VERSION.date = "$$currentDate()"
-    AUTO_VERSION.time = "$$currentTime()"
+    AUTO_VERSION.compile_moment = "$$currentDate() $$currentTime()"
 
     isEmpty( AUTO_VERSION.product ) : \
         AUTO_VERSION.product = "$${QMAKE_TARGET_PRODUCT}"
@@ -169,8 +170,8 @@ defineTest( generateAutoVersionFiles ) \
         "$${tab}$${tab}result.product = \"$${AUTO_VERSION.product}\";" \
         "$${tab}$${tab}result.version = \"$${AUTO_VERSION.version}\";" \
         "$${tab}$${tab}result.revision = \"$${AUTO_VERSION.revision}\";" \
-        "$${tab}$${tab}result.date = \"$${AUTO_VERSION.date}\";" \
-        "$${tab}$${tab}result.time = \"$${AUTO_VERSION.time}\";" \
+        "$${tab}$${tab}result.revision_moment = \"$${AUTO_VERSION.revision_moment}\";" \
+        "$${tab}$${tab}result.compile_moment = \"$${AUTO_VERSION.compile_moment}\";" \
         "$${tab}$${tab}result.vendor = \"$${AUTO_VERSION.vendor}\";" \
         "$${tab}$${tab}result.copyright = \"$${AUTO_VERSION.copyright}\";" \
         "$${tab}$${tab}result.license = \"$${AUTO_VERSION.license}\";" \
@@ -286,8 +287,8 @@ defineTest( generateAutoVersionFiles ) \
     export( VERSION )
 
     export( AUTO_VERSION.branch )
+    export( AUTO_VERSION.compile_moment )
     export( AUTO_VERSION.copyright )
-    export( AUTO_VERSION.date )
     export( AUTO_VERSION.description )
     export( AUTO_VERSION.gen_dir )
     export( AUTO_VERSION.header_file )
@@ -299,8 +300,8 @@ defineTest( generateAutoVersionFiles ) \
     export( AUTO_VERSION.product )
     export( AUTO_VERSION.pwd )
     export( AUTO_VERSION.revision )
+    export( AUTO_VERSION.revision_moment )
     export( AUTO_VERSION.source_file )
-    export( AUTO_VERSION.time )
     export( AUTO_VERSION.variant )
     export( AUTO_VERSION.vendor )
     export( AUTO_VERSION.version )

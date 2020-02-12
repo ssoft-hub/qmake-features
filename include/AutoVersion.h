@@ -73,8 +73,8 @@ namespace AutoVersion
         String product;
         String version;
         String revision;
-        String date;
-        String time;
+        String revision_moment;
+        String compile_moment;
         String vendor;
         String copyright;
         String license;
@@ -84,8 +84,8 @@ namespace AutoVersion
             : product()
             , version()
             , revision()
-            , date()
-            , time()
+            , revision_moment()
+            , compile_moment()
             , vendor()
             , copyright()
             , license()
@@ -165,24 +165,24 @@ namespace AutoVersion
      */
     inline Status::Enum versionStatus ( const Dependency & value )
     {
-        const Info & build = value.info;
-        const Info & runtime = value.version.info;
+        const Info & compile_time_info = value.info;
+        const Info & run_time_info = value.version.info;
 
-        if ( build.revision != runtime.revision )
+        if ( compile_time_info.revision != run_time_info.revision )
             return Status::Invalid;
 
         Status::Enum result = versionStatus( value.version );
         if ( result != Status::Valid )
             return result;
 
-        if ( build.product == runtime.product
-            && build.version == runtime.version
-            && build.date == runtime.date
-            && build.time == runtime.time
-            && build.vendor == runtime.vendor
-            && build.copyright == runtime.copyright
-            && build.license == runtime.license
-            && build.description == runtime.description )
+        if ( compile_time_info.product == run_time_info.product
+            && compile_time_info.version == run_time_info.version
+            && compile_time_info.revision_moment == run_time_info.revision_moment
+            && compile_time_info.compile_moment == run_time_info.compile_moment
+            && compile_time_info.vendor == run_time_info.vendor
+            && compile_time_info.copyright == run_time_info.copyright
+            && compile_time_info.license == run_time_info.license
+            && compile_time_info.description == run_time_info.description )
         {
             return Status::Valid;
         }

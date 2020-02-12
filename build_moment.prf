@@ -5,7 +5,7 @@ win32 | win64 \
 {
     defineReplace(currentDate) \
     {
-        return( $$system( date /t ) )
+        return( $$system( echo "%date:~6,4%-%date:~3,2%-%date:~0,2%" ) )
     }
 }
 
@@ -13,7 +13,7 @@ unix \
 {
     defineReplace(currentDate) \
     {
-        return( $$system( date "+%d.%m.%Y" ) )
+        return( $$system( date "+%Y-%m-%d" ) )
     }
 }
 

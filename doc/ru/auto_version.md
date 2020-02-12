@@ -122,8 +122,8 @@ A           версия a1(a1)a1     ok
 * AUTO_VERSION.version - текстовое представление версии компонента.
 * AUTO_VERSION.revision - текстовое представление о ревизии компонента (номер, SHA1 или т.д.).
 * AUTO_VERSION.branch - текстовое представление о ветке компонента.
-* AUTO_VERSION.date - текстовое представление даты сборки в формате DD.MM.YYYY.
-* AUTO_VERSION.time - текстовое представление о времени сборки в формате hh:mm:ss.
+* AUTO_VERSION.revision_moment - текстовое представление момента фиксации ревизии в формате ISO 8601.
+* AUTO_VERSION.compile_moment - текстовое представление о времени сборки в формате ISO 8601.
 * AUTO_VERSION.product - наименование продукта.
     * Если значение не задано явно, то подставляется значение переменной QMAKE_TARGET_PRODUCT.
     * Если $${QMAKE_TARGET_PRODUCT} не задан, то подставляется значение переменной TARGET.
@@ -186,25 +186,25 @@ CONFIG *= skip_target_version_ext
 
 namespace ComponentName_AutoVersion
 {
-	inline ::AutoVersion::Info info ()
-	{
-		::AutoVersion::Info result;
-		result.product = "ComponentName";
-		result.version = "v1.2.3-55e687c";
-		result.revision = "55e687c";
-		result.date = "02.08.2018";
-		result.time = "14:38";
-		result.vendor = "Vendor";
-		result.copyright = "Copyright";
-		result.license = "License";
-		result.description = "Description";
-		return result;
-	}
+    inline ::AutoVersion::Info info ()
+    {
+        ::AutoVersion::Info result;
+        result.product = "ComponentName";
+        result.version = "v1.2.3-55e687c";
+        result.revision = "55e687c";
+        result.revision_moment = "2020-02-03 14:10:32 +0300";
+        result.compile_moment = "2020-02-12 11:34";
+        result.vendor = "Vendor";
+        result.copyright = "Copyright";
+        result.license = "License";
+        result.description = "Description";
+        return result;
+    }
 }
 
 namespace ComponentName_AutoVersion
 {
-	AUTO_VERSION_EXPORT ::AutoVersion::Version version ();
+    AUTO_VERSION_EXPORT ::AutoVersion::Version version ();
 }
 
 #endif
@@ -220,21 +220,21 @@ namespace ComponentName_AutoVersion
 
 namespace ComponentName_AutoVersion
 {
-	::AutoVersion::Version version ()
-	{
-		::AutoVersion::Version result;
-		result.info = ::ComponentName_AutoVersion::info();
+    ::AutoVersion::Version version ()
+    {
+        ::AutoVersion::Version result;
+        result.info = ::ComponentName_AutoVersion::info();
 
-		// Этот блок повторяется для каждой зависимости
-		{
-			::AutoVersion::Dependency dependency;
-			dependency.info = ::Dependency1_AutoVersion::info();
-			dependency.version = ::Dependency1_AutoVersion::version();
-			result.dependencies.push_back( dependency );
-		}
+        // Этот блок повторяется для каждой зависимости
+        {
+            ::AutoVersion::Dependency dependency;
+            dependency.info = ::Dependency1_AutoVersion::info();
+            dependency.version = ::Dependency1_AutoVersion::version();
+            result.dependencies.push_back( dependency );
+        }
 
-		return result;
-	}
+        return result;
+    }
 }
 ```
 
@@ -246,10 +246,10 @@ namespace ComponentName_AutoVersion
 ```cpp
 namespace AutoVersion
 {
-	::AutoVersion::Version version ()
-	{
-		return ::ComponentName_Version_AutoVersion::version();
-	}
+    ::AutoVersion::Version version ()
+    {
+        return ::ComponentName_Version_AutoVersion::version();
+    }
 }
 ```
 
@@ -260,10 +260,10 @@ namespace AutoVersion
 
 void foo ()
 {
-	AutoVersion::Version version = AutoVersion::version();
-	std::cout << "Version: " << version.info.version.c_str << std::endl;
-	std::cout << "Revision: " << version.info.revision.c_str << std::endl;
-	// ...
+    AutoVersion::Version version = AutoVersion::version();
+    std::cout << "Version: " << version.info.version.c_str << std::endl;
+    std::cout << "Revision: " << version.info.revision.c_str << std::endl;
+    // ...
 }
 ```
 
@@ -298,8 +298,8 @@ void printInfo ( int level, const Info & info )
     cout << "| "; if ( info.product ) cout << info.product.c_str;
     cout << " | "; if ( info.version ) cout << info.version.c_str;
     cout << " | "; if ( info.revision ) cout << info.revision.c_str;
-    cout << " | "; if ( info.date ) cout << info.date.c_str;
-    cout << " | "; if ( info.time ) cout << info.time.c_str;
+    cout << " | "; if ( info.revision_moment ) cout << info.revision_moment.c_str;
+    cout << " | "; if ( info.compile_moment ) cout << info.compile_moment.c_str;
     cout << " | "; if ( info.vendor ) cout << info.vendor.c_str;
     cout << " | "; if ( info.copyright ) cout << info.copyright.c_str;
     cout << " | "; if ( info.license ) cout << info.license.c_str;
