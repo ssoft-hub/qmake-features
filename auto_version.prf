@@ -5,10 +5,14 @@
 !load( complex_paths ) : errorLogging( "Can not find feature \"complex_paths\"" )
 !load( git_version ) : errorLogging( "Can not find feature \"git_version\"" )
 !load( svn_version ) : errorLogging( "Can not find feature \"svn_version\"" )
+!load( include_files ) : errorLogging( "Can not find feature \"include_files\"" )
 
 defineTest( generateAutoVersionFiles ) \
 {
     AUTO_VERSION.version =
+
+    contains( TEMPLATE, .*lib ) : \
+        AUTO_VERSION.variant = lib
 
     CONFIG( static ) : \
         AUTO_VERSION.variant = header_only
@@ -57,8 +61,13 @@ defineTest( generateAutoVersionFiles ) \
     isEmpty( AUTO_VERSION.description ) : \
         AUTO_VERSION.description = "$${QMAKE_TARGET_DESCRIPTION}"
 
-    TEMP_LIST = $$split( AUTO_VERSION.version, '.' )
+    isEmpty( AUTO_VERSION.version ) : \
+        AUTO_VERSION.version = "$${VERSION}"
 
+    isEmpty( AUTO_VERSION.version ) : \
+        AUTO_VERSION.version = "1.0.0"
+
+    TEMP_LIST = $$split( AUTO_VERSION.version, '.' )
     TEMP.first = $$lower( $$member(TEMP_LIST, 0) )
     isEqual( TEMP.first, "v" ) \
     {
@@ -98,8 +107,9 @@ defineTest( generateAutoVersionFiles ) \
         VERSION = $${AUTO_VERSION.major}.$${AUTO_VERSION.minor}.$${AUTO_VERSION.patch}
     }
 
-    AUTO_VERSION.namespace = $${TARGET}_AutoVersion
-    AUTO_VERSION.namespace = $$replace( AUTO_VERSION.namespace, [$$escape_expand(\\W)], _ )
+    AUTO_VERSION.target = $${TARGET}
+    AUTO_VERSION.target = $$replace( AUTO_VERSION.target, [$$escape_expand(\\W)], _ )
+    AUTO_VERSION.namespace = $${AUTO_VERSION.target}_AutoVersion
 
     isEqual( AUTO_VERSION.variant, app ) \
     {
@@ -133,11 +143,11 @@ defineTest( generateAutoVersionFiles ) \
 
     isEqual( AUTO_VERSION.variant, header_only ) \
     {
-        AUTO_VERSION_EXPORT_INLINE = "inline"
+        AUTO_VERSION_EXPORT_INLINE = "inline "
     } \
     else \
     {
-        AUTO_VERSION_EXPORT_VALUE = "AUTO_VERSION_EXPORT"
+        AUTO_VERSION_EXPORT_VALUE = "AUTO_VERSION_EXPORT "
         AUTO_VERSION.source_file = "$${AUTO_VERSION.pwd}/AutoVersion_p.cpp"
         SOURCES *= "$${AUTO_VERSION.source_file}"
     }
@@ -150,7 +160,23 @@ defineTest( generateAutoVersionFiles ) \
         "$${LITERAL_HASH}ifndef $${AUTO_VERSION.namespace}_H" \
         "$${LITERAL_HASH}define $${AUTO_VERSION.namespace}_H" \
         "//" \
-        "$${LITERAL_HASH}include <AutoVersion.h>" \
+        "$${LITERAL_HASH}include <AutoVersion/Base.h>" \
+
+    for( depend, DEPENDS.loaded ) \
+    {
+        AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.gen_dir}/$${depend}/AutoVersion_p.h"
+        !isEqual( AUTO_VERSION.header_file, $${AUTO_VERSION_H_TEMP_FILE} ) : \
+            exists( $${AUTO_VERSION_H_TEMP_FILE} ) : \
+                AUTO_VERSION_H_CONTENTS += \
+                    "$${LITERAL_HASH}include \"$${AUTO_VERSION_H_TEMP_FILE}\""
+    }
+
+    !isEmpty( QT ) : \
+        AUTO_VERSION_H_CONTENTS += \
+            "$${LITERAL_HASH}include <QtGlobal>"
+            #"$${LITERAL_HASH}include \"QtGlobal\""
+
+    AUTO_VERSION_H_CONTENTS += \
         "//" \
         "$${LITERAL_HASH}ifdef AUTO_VERSION_EXPORT" \
         "$${LITERAL_HASH}undef AUTO_VERSION_EXPORT" \
@@ -162,90 +188,136 @@ defineTest( generateAutoVersionFiles ) \
         "$${LITERAL_HASH}define AUTO_VERSION_EXPORT $${AUTO_VERSION_IMPORT_DECLARE}" \
         "$${LITERAL_HASH}endif // $${AUTO_VERSION.namespace}_EXPORT" \
         "//" \
-        "namespace $${AUTO_VERSION.namespace}" \
+        "inline ::AutoVersion::Info compileInfoAbout_$${AUTO_VERSION.target} ()" \
         "{" \
-        "$${tab}inline ::AutoVersion::Info info ()" \
-        "$${tab}{" \
-        "$${tab}$${tab}::AutoVersion::Info result;" \
-        "$${tab}$${tab}result.product = \"$${AUTO_VERSION.product}\";" \
-        "$${tab}$${tab}result.version = \"$${AUTO_VERSION.version}\";" \
-        "$${tab}$${tab}result.revision = \"$${AUTO_VERSION.revision}\";" \
-        "$${tab}$${tab}result.revision_moment = \"$${AUTO_VERSION.revision_moment}\";" \
-        "$${tab}$${tab}result.compile_moment = \"$${AUTO_VERSION.compile_moment}\";" \
-        "$${tab}$${tab}result.vendor = \"$${AUTO_VERSION.vendor}\";" \
-        "$${tab}$${tab}result.copyright = \"$${AUTO_VERSION.copyright}\";" \
-        "$${tab}$${tab}result.license = \"$${AUTO_VERSION.license}\";" \
-        "$${tab}$${tab}result.description = \"$${AUTO_VERSION.description}\";" \
+        "$${tab}static ::AutoVersion::Info result;" \
+        "$${tab}if ( !result.m_attributes.empty() )" \
         "$${tab}$${tab}return result;" \
-        "$${tab}}" \
-        "}" \
-        "//" \
-        "namespace $${AUTO_VERSION.namespace}" \
-        "{" \
-        "$${tab}$${AUTO_VERSION_EXPORT_VALUE} ::AutoVersion::Version version ();" \
-        "}" \
         "//" \
 
-    AUTO_VERSION_H_CONTENTS_END = "$${LITERAL_HASH}endif // $${AUTO_VERSION.namespace}_H"
-
-    # SOURCE FILE
-    # Generation includes of dependencies
-    for( depend, DEPENDS.loaded ) \
+    isEqual( AUTO_VERSION.variant, header_only ) \
     {
-        AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.gen_dir}/$${depend}/AutoVersion_p.h"
-        !isEqual( AUTO_VERSION.header_file, $${AUTO_VERSION_H_TEMP_FILE} ) : \
-            exists( $${AUTO_VERSION_H_TEMP_FILE} ) : \
-                AUTO_VERSION_CPP_CONTENTS += \
-                    "$${LITERAL_HASH}include \"$${AUTO_VERSION_H_TEMP_FILE}\""
+        AUTO_VERSION_H_CONTENTS += \
+            "$${tab}result[ ::AutoVersion::Info::key( \"compile.mode\" ) ] = ::AutoVersion::Info::attribute( L\"static\" );" \
+    }
+    isEqual( AUTO_VERSION.variant, lib ) \
+    {
+        AUTO_VERSION_H_CONTENTS += \
+            "$${tab}result[ ::AutoVersion::Info::key( \"compile.mode\" ) ] = ::AutoVersion::Info::attribute( L\"dynamic\" );" \
+    }
+    isEqual( AUTO_VERSION.variant, app ) \
+    {
+        AUTO_VERSION_H_CONTENTS += \
+            "$${tab}result[ ::AutoVersion::Info::key( \"compile.mode\" ) ] = ::AutoVersion::Info::attribute( L\"application\" );" \
     }
 
-    AUTO_VERSION_CPP_CONTENTS += \
+    AUTO_VERSION_H_CONTENTS += \
+        "$${tab}result[ ::AutoVersion::Info::key( \"compile.branch\" ) ] = ::AutoVersion::Info::attribute( L\"$${AUTO_VERSION.branch}\" );" \
+        "$${tab}result[ ::AutoVersion::Info::key( \"compile.moment\" ) ] = ::AutoVersion::Info::attribute( L\"$${AUTO_VERSION.compile_moment}\" );" \
+        "$${tab}result[ ::AutoVersion::Info::key( \"copyright\" ) ] = ::AutoVersion::Info::attribute( L\"$${AUTO_VERSION.copyright}\" );" \
+        "$${tab}result[ ::AutoVersion::Info::key( \"description\" ) ] = ::AutoVersion::Info::attribute( L\"$${AUTO_VERSION.description}\" );" \
+        "$${tab}result[ ::AutoVersion::Info::key( \"license\" ) ] = ::AutoVersion::Info::attribute( L\"$${AUTO_VERSION.license}\" );" \
+        "$${tab}result[ ::AutoVersion::Info::key( \"product\" ) ] = ::AutoVersion::Info::attribute( L\"$${AUTO_VERSION.product}\" );" \
+        "$${tab}result[ ::AutoVersion::Info::key( \"revision\" ) ] = ::AutoVersion::Info::attribute( L\"$${AUTO_VERSION.revision}\" );" \
+        "$${tab}result[ ::AutoVersion::Info::key( \"revision.moment\" ) ] = ::AutoVersion::Info::attribute( L\"$${AUTO_VERSION.revision_moment}\" );" \
+        "$${tab}result[ ::AutoVersion::Info::key( \"vendor\" ) ] = ::AutoVersion::Info::attribute( L\"$${AUTO_VERSION.vendor}\" );" \
+        "$${tab}result[ ::AutoVersion::Info::key( \"version\" ) ] = ::AutoVersion::Info::attribute( L\"$${AUTO_VERSION.version}\" );" \
+        #"$${tab}result[ ::AutoVersion::Info::key( \"version.major\" ) ] = ::AutoVersion::Info::attribute( L\"$${AUTO_VERSION.major}\" );" \
+        #"$${tab}result[ ::AutoVersion::Info::key( \"version.minor\" ) ] = ::AutoVersion::Info::attribute( L\"$${AUTO_VERSION.minor}\" );" \
+        #"$${tab}result[ ::AutoVersion::Info::key( \"version.patch\" ) ] = ::AutoVersion::Info::attribute( L\"$${AUTO_VERSION.patch}\" );" \
+        "$${tab}return result;" \
+        "}" \
         "//" \
-        "$${LITERAL_HASH}define EXPORT_$${AUTO_VERSION.namespace}" \
-        "$${LITERAL_HASH}include \"AutoVersion_p.h\"" \
-        "//" \
+        "extern \"C\" $${AUTO_VERSION_EXPORT_VALUE}::AutoVersion::Info runtimeInfoAbout_$${AUTO_VERSION.target} ();" \
 
-    AUTO_VERSION_CPP_CONTENTS += \
+    AUTO_VERSION_H_CONTENTS += \
         "//" \
         "namespace $${AUTO_VERSION.namespace}" \
         "{" \
-        "$${tab}$${AUTO_VERSION_EXPORT_INLINE} ::AutoVersion::Version version ()" \
+        "$${tab}inline ::AutoVersion::CompileVersion compileVersion ()" \
         "$${tab}{" \
-        "$${tab}$${tab}::AutoVersion::Version result;" \
-        "$${tab}$${tab}result.info = ::$${AUTO_VERSION.namespace}::info();" \
+        "$${tab}$${tab}static ::AutoVersion::CompileVersion result;" \
+        "$${tab}$${tab}if ( !result.m_dependencies.empty() )" \
+        "$${tab}$${tab}$${tab}return result;" \
+        "//" \
+        "$${tab}$${tab}result.m_info = ::compileInfoAbout_$${AUTO_VERSION.target}();" \
+        "//" \
 
     # Generation tree of dependencies
     for( depend, DEPENDS.loaded ) \
     {
         AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.gen_dir}/$${depend}/AutoVersion_p.h"
-        AUTO_VERSION_TEMP_NAMESPACE = $${depend}_AutoVersion
-        AUTO_VERSION_TEMP_NAMESPACE = $$replace( AUTO_VERSION_TEMP_NAMESPACE, [$$escape_expand(\\W)], _ )
-        !isEqual( AUTO_VERSION_TEMP_NAMESPACE, $${AUTO_VERSION.namespace} ) : \
+        AUTO_VERSION_TEMP.target = $${depend}
+        AUTO_VERSION_TEMP.target = $$replace( AUTO_VERSION_TEMP.target, [$$escape_expand(\\W)], _ )
+        AUTO_VERSION_TEMP.namespace = $${AUTO_VERSION_TEMP.target}_AutoVersion
+        !isEqual( AUTO_VERSION_TEMP.namespace, $${AUTO_VERSION.namespace} ) : \
             exists( $${AUTO_VERSION_H_TEMP_FILE} ) : \
-                AUTO_VERSION_CPP_CONTENTS += \
-                    "$${tab}$${tab}{" \
-                    "$${tab}$${tab}$${tab}::AutoVersion::Dependency dependency;" \
-                    "$${tab}$${tab}$${tab}dependency.info = ::$${AUTO_VERSION_TEMP_NAMESPACE}::info();" \
-                    "$${tab}$${tab}$${tab}dependency.version = ::$${AUTO_VERSION_TEMP_NAMESPACE}::version();" \
-                    "$${tab}$${tab}$${tab}result.dependencies.push_back( dependency );" \
-                    "$${tab}$${tab}}"
+                AUTO_VERSION_H_CONTENTS += \
+                    "$${tab}$${tab}result.m_dependencies.push_back( ::$${AUTO_VERSION_TEMP.namespace}::compileVersion() );" \
     }
 
-    AUTO_VERSION_CPP_CONTENTS += \
+    !isEmpty( QT ) : \
+        AUTO_VERSION_H_CONTENTS += \
+            "//" \
+            "$${tab}$${tab}{" \
+            "$${tab}$${tab}$${tab}::AutoVersion::CompileVersion qt_info;" \
+            "$${tab}$${tab}$${tab}qt_info.m_info[ ::AutoVersion::Info::key( \"copyright\" ) ] = ::AutoVersion::Info::attribute( \"Copyright (C) 2019 The Qt Company Ltd.\" );" \
+            "$${tab}$${tab}$${tab}qt_info.m_info[ ::AutoVersion::Info::key( \"description\" ) ] = ::AutoVersion::Info::attribute( \"C++ Application Development Framework\" );" \
+            "$${tab}$${tab}$${tab}qt_info.m_info[ ::AutoVersion::Info::key( \"license\" ) ] = ::AutoVersion::Info::attribute( \"GPL and LGPLv3 open source licenses\" ) ;" \
+            "$${tab}$${tab}$${tab}qt_info.m_info[ ::AutoVersion::Info::key( \"product\" ) ] = ::AutoVersion::Info::attribute( \"Qt Product\" );" \
+            "$${tab}$${tab}$${tab}qt_info.m_info[ ::AutoVersion::Info::key( \"vendor\" ) ] = ::AutoVersion::Info::attribute( \"The Qt Company Ltd.\" );" \
+            "$${tab}$${tab}$${tab}qt_info.m_info[ ::AutoVersion::Info::key( \"version\" ) ] = ::AutoVersion::Info::attribute( QT_VERSION_STR );" \
+            "$${tab}$${tab}$${tab}result.m_dependencies.push_back( qt_info );" \
+            "$${tab}$${tab}}" \
+
+    AUTO_VERSION_H_CONTENTS += \
+        "//" \
         "$${tab}$${tab}return result;" \
         "$${tab}}" \
         "}" \
 
+    AUTO_VERSION_H_CONTENTS_END += \
+        "//" \
+        "$${LITERAL_HASH}endif // $${AUTO_VERSION.namespace}_H" \
+
+    # SOURCE FILE
+    # Generation includes of dependencies
+    AUTO_VERSION_CPP_CONTENTS += \
+        "$${LITERAL_HASH}define EXPORT_$${AUTO_VERSION.namespace}" \
+        "$${LITERAL_HASH}include \"AutoVersion_p.h\"" \
+        "//" \
+        "::AutoVersion::Info runtimeInfoAbout_$${AUTO_VERSION.target} () { return ::compileInfoAbout_$${AUTO_VERSION.target}(); } " \
+
     # SOURCE FILE APP ADDITION
-    equals( AUTO_VERSION.variant, app ) \
+    isEqual( AUTO_VERSION.variant, app ) \
     {
         AUTO_VERSION_CPP_CONTENTS += \
             "//" \
+            "$${LITERAL_HASH}include <AutoVersion/Application.h>" \
+            "//" \
             "namespace AutoVersion" \
             "{" \
+            "$${tab}::AutoVersion::Info info ()" \
+            "$${tab}{" \
+            "$${tab}$${tab}return ::compileInfoAbout_$${AUTO_VERSION.target}();" \
+            "$${tab}}" \
+            "//" \
+            "$${tab}::AutoVersion::CompileVersion compileVersion ()" \
+            "$${tab}{" \
+            "$${tab}$${tab}return ::$${AUTO_VERSION.namespace}::compileVersion();" \
+            "$${tab}}" \
+            "//" \
+            "$${tab}::AutoVersion::RuntimeVersion runtimeVersion ()" \
+            "$${tab}{" \
+            "$${tab}$${tab}return ::AutoVersion::Application().runtimeVersion();" \
+            "$${tab}}" \
+            "//" \
             "$${tab}::AutoVersion::Version version ()" \
             "$${tab}{" \
-            "$${tab}$${tab}return ::$${AUTO_VERSION.namespace}::version();" \
+            "$${tab}$${tab}::AutoVersion::Version result;" \
+            "$${tab}$${tab}result.m_compile = ::AutoVersion::compileVersion();" \
+            "$${tab}$${tab}result.m_runtime = ::AutoVersion::runtimeVersion();" \
+            "$${tab}$${tab}return result;" \
             "$${tab}}" \
             "}"
     }
@@ -312,3 +384,24 @@ defineTest( generateAutoVersionFiles ) \
 !contains( TEMPLATE, .*subdirs ) : \
     !generateAutoVersionFiles() : \
         errorLogging( AutoVersion files generation failed. )
+
+isEqual( AUTO_VERSION.variant, app ) \
+{
+    win*: LIBS *= -lVersion
+
+    greaterThan( QT_MAJOR_VERSION, 4 ) \
+    {
+        contains( QT, widgets ) : \
+            AUTO_VERSION.qt_about_widget = true
+    } \
+    else \
+    {
+        contains( QT, gui ) : \
+            AUTO_VERSION.qt_about_widget = true
+    }
+}
+
+isEqual( AUTO_VERSION.qt_about_widget, true ) \
+{
+    includeFiles( $${PWD}/src/Qt/AutoVersion )
+}

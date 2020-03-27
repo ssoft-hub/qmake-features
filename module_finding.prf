@@ -48,60 +48,63 @@ defineTest( recursiveDefineDependencyDirectories ) \
 }
 
 # Main
-# Попытка загрузить кеш с перечнем модулей
-win32 | win64 \
+!contains( TEMPLATE, .*subdirs ) \
 {
-    DEPENDS_CACHE_FILE = "$${QMAKE_CONF.pwd}\\.depends.cache"
-} \
-else \
-{
-    DEPENDS_CACHE_FILE = "$${QMAKE_CONF.pwd}/.depends.cache"
-}
-
-# Если нужно сформировать кэш, то текущий не используется
-contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) : \
-    DEPENDS_CACHE_CONFIG *= unuse_depends_cache
-
-# Загрузка кэша, если он есть и нет явного флага не использовать
-!contains( DEPENDS_CACHE_CONFIG, unuse_depends_cache ) \
-{
-    # При наличии файла
-    exists( $${DEPENDS_CACHE_FILE} ) \
+    # Попытка загрузить кеш с перечнем модулей
+    win32 | win64 \
     {
-        # Зачитываем
-        messageLogging( Load cached path from $${DEPENDS_CACHE_FILE}. )
-        include( $${DEPENDS_CACHE_FILE} )
+        DEPENDS_CACHE_FILE = "$${QMAKE_CONF.pwd}\\.depends.cache"
     } \
     else \
     {
-        # или помечаем, что не используем кэш
+        DEPENDS_CACHE_FILE = "$${QMAKE_CONF.pwd}/.depends.cache"
+    }
+
+    # Если нужно сформировать кэш, то текущий не используется
+    contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) : \
         DEPENDS_CACHE_CONFIG *= unuse_depends_cache
-    }
-}
 
-# Если не используем кэш
-contains( DEPENDS_CACHE_CONFIG, unuse_depends_cache ) \
-{
-    # Осуществляем рекурсивный поиск модулей
-    DEPEND_PATH = "$${QMAKE_CONF.pwd}"
-    win32 : DEPEND_PATH = "$$replace( DEPEND_PATH, "\\\\", "/" )"
-    recursiveDefineDependencyDirectories()
-
-    # Выводим сообщения о найденных модулях
-    for( subdir, DEPEND_PATH ) \
+    # Загрузка кэша, если он есть и нет явного флага не использовать
+    !contains( DEPENDS_CACHE_CONFIG, unuse_depends_cache ) \
     {
-        messageLogging( Find modules into: $${subdir} )
+        # При наличии файла
+        exists( $${DEPENDS_CACHE_FILE} ) \
+        {
+            # Зачитываем
+            messageLogging( Load cached path from $${DEPENDS_CACHE_FILE}. )
+            include( $${DEPENDS_CACHE_FILE} )
+        } \
+        else \
+        {
+            # или помечаем, что не используем кэш
+            DEPENDS_CACHE_CONFIG *= unuse_depends_cache
+        }
     }
-}
 
-# Если нужно сформировать файл с кэшем
-contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) \
-{
-    # Механизм QMAKE_SUBSTITUTES с параметром .depends.cache.in не работает для msvc,
-    # поэтому формирование файла реализовано через echo с перенаправлением в файл.
-    messageLogging( Save cached path to $${DEPENDS_CACHE_FILE}. )
-    makeEmptyFile( "$${DEPENDS_CACHE_FILE}" )
-    appendToFile( "$${DEPENDS_CACHE_FILE}", "DEPEND_PATH = \\" )
-    for( module_path, DEPEND_PATH ) : \
-        appendToFile( "$${DEPENDS_CACHE_FILE}", \""$${module_path}\" \\" )
+    # Если не используем кэш
+    contains( DEPENDS_CACHE_CONFIG, unuse_depends_cache ) \
+    {
+        # Осуществляем рекурсивный поиск модулей
+        DEPEND_PATH = "$${QMAKE_CONF.pwd}"
+        win32 : DEPEND_PATH = "$$replace( DEPEND_PATH, "\\\\", "/" )"
+        recursiveDefineDependencyDirectories()
+
+        # Выводим сообщения о найденных модулях
+        for( subdir, DEPEND_PATH ) \
+        {
+            messageLogging( Find modules into: $${subdir} )
+        }
+    }
+
+    # Если нужно сформировать файл с кэшем
+    contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) \
+    {
+        # Механизм QMAKE_SUBSTITUTES с параметром .depends.cache.in не работает для msvc,
+        # поэтому формирование файла реализовано через echo с перенаправлением в файл.
+        messageLogging( Save cached path to $${DEPENDS_CACHE_FILE}. )
+        makeEmptyFile( "$${DEPENDS_CACHE_FILE}" )
+        appendToFile( "$${DEPENDS_CACHE_FILE}", "DEPEND_PATH = \\" )
+        for( module_path, DEPEND_PATH ) : \
+            appendToFile( "$${DEPENDS_CACHE_FILE}", \""$${module_path}\" \\" )
+    }
 }

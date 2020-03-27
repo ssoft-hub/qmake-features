@@ -80,10 +80,6 @@ defineTest( defineSvnVersion ) \
             SVN.branch = $${SVN.branch}/$$member( SVN.path_list, 1 )
             SVN.version = $$member( SVN.path_list, 1 )
         } \
-        else \
-        {
-            SVN.version = $${SVN.branch}
-        }
     }
 
     DEFINES *= \

@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/AutoVersion">
+        <file>image/different.png</file>
+        <file>image/invalid.png</file>
+        <file>image/undefined.png</file>
+        <file>image/valid.png</file>
+    </qresource>
+</RCC>
