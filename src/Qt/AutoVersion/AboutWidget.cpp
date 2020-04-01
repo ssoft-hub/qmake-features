@@ -77,5 +77,10 @@ namespace AutoVersion
         setLayout( new QVBoxLayout( this ) );
         layout()->setMargin( 0 );
         layout()->addWidget( new AboutWidget( this ) );
+
+        if ( parent )
+            setWindowTitle( trUtf8( "О программе \"%1\"" ).arg( parent->windowTitle() ) );
+        else
+            setWindowTitle( trUtf8( "О программе" ) );
     }
 }

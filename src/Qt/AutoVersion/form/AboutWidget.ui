@@ -71,9 +71,6 @@
           <property name="text">
            <string notr="true"/>
           </property>
-          <property name="pixmap">
-           <pixmap resource="../../../../../../../src/applications/Clients/ClientAirTrafficGui/icons.qrc">:/Images/Images/map.png</pixmap>
-          </property>
           <property name="alignment">
            <set>Qt::AlignHCenter|Qt::AlignTop</set>
           </property>
@@ -320,8 +317,6 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources>
-  <include location="../../../../../../../src/applications/Clients/ClientAirTrafficGui/icons.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>
