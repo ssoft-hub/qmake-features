@@ -35,7 +35,7 @@ namespace AutoVersion
         typedef ::AutoVersion::Version Version;
         typedef ::AutoVersion::RuntimeVersion RuntimeVersion;
         typedef ::AutoVersion::CompileVersion CompileVersion;
-        typedef CompileVersion::CompileVersions CompileVersions;
+        typedef CompileVersion::Dependencies CompileVersions;
         typedef const CompileVersion & CompileRef;
         typedef const RuntimeVersion::Module * RuntimePtr;
 

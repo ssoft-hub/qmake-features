@@ -4,6 +4,7 @@
 
 #include <AutoVersion/Base.h>
 #include <QAbstractItemModel>
+#include <vector>
 
 namespace AutoVersion
 {

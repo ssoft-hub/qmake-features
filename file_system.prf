@@ -6,7 +6,7 @@
 # Make directory with subdirectories.
 defineTest( makePath ) \
 {
-    lessThan( QT_MAJOR_VERSION, 5 ) \
+    isEqual( QT_MAJOR_VERSION, 4 ) \
     {
         exists( "$${ARGS}" ) : \
             return( true )
@@ -28,12 +28,14 @@ defineTest( makePath ) \
         }
 
         return( true )
-    } \
-    else \
+    }
+
+    isEqual( QT_MAJOR_VERSION, 5 ) \
     {
         mkpath( "$${ARGS}" ) : \
             return( true )
     }
+
     return( false )
 }
 
@@ -72,31 +74,32 @@ defineTest( appendToFile ) \
 
     for( file_line, file_data ) \
     {
-        win32 | win64 \
+        isEqual( QT_MAJOR_VERSION, 4 ) \
         {
-            #file_line = $$replace( file_line, "^", "^^" )
-            #file_line = $$replace( file_line, "|", "^|" )
-            file_line = $$replace( file_line, "<", "^<" )
-            file_line = $$replace( file_line, ">", "^>" )
-            #file_line = $$replace( file_line, "&", "^&" )
+            win32 | win64 \
+            {
+                #file_line = $$replace( file_line, "^", "^^" )
+                #file_line = $$replace( file_line, "|", "^|" )
+                file_line = $$replace( file_line, "<", "^<" )
+                file_line = $$replace( file_line, ">", "^>" )
+                file_line = $$replace( file_line, "&", "^&" )
 
-            COMMAND = "echo $${file_line}>> \"$${file_path}\""
-        } \
-        else \
-        {
-            COMMAND = "echo \'$${file_line}\' >> \'$${file_path}\'"
-        }
+                COMMAND = "echo $${file_line}>> \"$${file_path}\""
+            } \
+            else \
+            {
+                COMMAND = "echo \'$${file_line}\' >> \'$${file_path}\'"
+            }
 
-        lessThan( QT_MAJOR_VERSION, 5 ) \
-        {
             !system( "$${COMMAND}" ) \
             {
                 messageLogging( "System command: \"$${COMMAND}\"" )
                 errorLogging( "Can not append anything to file \"$${file_path}\"." )
                 return( false )
             }
-        } \
-        else \
+        }
+
+        isEqual( QT_MAJOR_VERSION, 5 ) \
         {
             !write_file( "$${file_path}", file_line, append ) \
             {
@@ -114,12 +117,13 @@ defineTest( writeToFile ) \
     file_path = $${1}
     file_data = $${2}
 
-    lessThan( QT_MAJOR_VERSION, 5 ) \
+    isEqual( QT_MAJOR_VERSION, 4 ) \
     {
         makeEmptyFile( "$${file_path}" )
         appendToFile( "$${file_path}", $${file_data} )
-    } \
-    else \
+    }
+
+    isEqual( QT_MAJOR_VERSION, 5 ) \
     {
         !write_file( "$${file_path}", file_data ) \
         {
@@ -191,7 +195,7 @@ defineReplace( absolutePath ) \
 
 defineReplace( cleanPath ) \
 {
-    lessThan( QT_MAJOR_VERSION, 5 ) \
+    isEqual( QT_MAJOR_VERSION, 4 ) \
     {
         result = "$${1}"
         win32 : result = "$$replace( result, "\\\\", "/" )"
@@ -226,8 +230,9 @@ defineReplace( cleanPath ) \
             }
         }
         return( "$${result}" )
-    } \
-    else \
+    }
+
+    isEqual( QT_MAJOR_VERSION, 5 ) \
     {
         return( "$$clean_path( "$${1}" )" )
     }

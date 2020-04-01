@@ -1,6 +1,6 @@
 #pragma once
-#ifndef AUTO_VERSION_UNIX_IMPL
-#define AUTO_VERSION_UNIX_IMPL
+#ifndef AUTO_VERSION_APPLICATION_UNIX_IMPL
+#define AUTO_VERSION_APPLICATION_UNIX_IMPL
 
 namespace AutoVersion
 {

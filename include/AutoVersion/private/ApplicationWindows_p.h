@@ -1,6 +1,6 @@
 #pragma once
-#ifndef AUTO_VERSION_WINDOWS_IMPL
-#define AUTO_VERSION_WINDOWS_IMPL
+#ifndef AUTO_VERSION_APPLICATION_WINDOWS_IMPL
+#define AUTO_VERSION_APPLICATION_WINDOWS_IMPL
 
 #include <cstdarg>
 #include <libloaderapi.h>
@@ -86,10 +86,7 @@ namespace AutoVersion
                 typedef const char * (*QtVersionMethod) ();
                 QtVersionMethod qt_version_method = QtVersionMethod( GetProcAddress( handle, "qVersion" ) );
                 if ( qt_version_method )
-                {
-                    product = module.m_info[ Info::key( "product" ) ] = Info::attribute( "Qt Product" );
-                    module.m_info[ Info::key( "version" ) ] = Info::attribute( qt_version_method() );
-                }
+                    module.m_info[ Info::key( "revision" ) ] = module.m_info[ Info::key( "version" ) ] = Info::attribute( qt_version_method() );
 
                 // path
                 TSTRING path;

@@ -94,7 +94,7 @@ namespace AutoVersion
         QFont font = QApplication::font();
         if ( compile_info[ "compile.mode" ] == ::AutoVersion::Info::attribute( "static" ) )
             font.setItalic( !font.italic() );
-        else if ( !runtime_info[ key ].empty() && runtime_info[ key ] != compile_info[ key ] )
+        else if ( runtime_info[ key ] != compile_info[ key ] )
             font.setBold( !font.bold() );
         return font;
     }
@@ -118,13 +118,16 @@ namespace AutoVersion
             item.m_runtime_ptr = &iter->second;
 
         int local_row = int();
-        item.m_items.reserve( version.m_dependencies.size() );
-        for ( CompileVersions::const_iterator iter = version.m_dependencies.begin();
-            iter != version.m_dependencies.end(); ++iter )
+        if ( version.m_dependencies )
         {
-            const CompileVersion & dependency = *iter;
-            item.m_items.push_back( Item( dependency, &item, local_row++ ) );
-            init( item.m_items.back(), dependency );
+            item.m_items.reserve( version.m_dependencies->size() );
+            for ( CompileVersions::const_iterator iter = version.m_dependencies->begin();
+                iter != version.m_dependencies->end(); ++iter )
+            {
+                const CompileVersion & dependency = *iter;
+                item.m_items.push_back( Item( dependency, &item, local_row++ ) );
+                init( item.m_items.back(), dependency );
+            }
         }
     }
 

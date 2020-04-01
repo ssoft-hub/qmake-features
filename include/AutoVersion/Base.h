@@ -19,7 +19,7 @@ namespace AutoVersion
     struct Info
     {
         typedef ::std::string Key;
-        typedef typename ::std::wstring Attribute;
+        typedef ::std::wstring Attribute;
         typedef ::std::map< Key, Attribute > Attributes;
 
         Attributes m_attributes;
@@ -50,6 +50,23 @@ namespace AutoVersion
         static Attribute attribute ( const wchar_t * value ) { return Attribute( value, value + wcslen( value ) ); }
         template < typename _Container > static Attribute attribute ( const _Container & container ) { return Attribute( container.begin(), container.end() ); }
     };
+
+    struct Module
+    {
+        typedef ::std::wstring Alias;
+        typedef ::std::set< Alias > Aliases;
+
+        Info m_info;
+        Aliases m_aliases;
+
+        Module () : m_info() , m_aliases() { }
+
+        static Alias alias ( char * value ) { return Alias( value, value + strlen( value ) ); }
+        static Alias alias ( const char * value ) { return Alias( value, value + strlen( value ) ); }
+        static Alias alias ( wchar_t * value ) { return Alias( value, value + wcslen( value ) ); }
+        static Alias alias ( const wchar_t * value ) { return Alias( value, value + wcslen( value ) ); }
+        template < typename _Container > static Alias alias ( const _Container & container ) { return Alias( container.begin(), container.end() ); }
+    };
 }
 
 namespace AutoVersion
@@ -57,25 +74,20 @@ namespace AutoVersion
     struct CompileVersion
     {
         typedef ::AutoVersion::Info Info;
-        typedef ::std::list< CompileVersion > CompileVersions;
+        typedef::AutoVersion::CompileVersion Dependency;
+        typedef ::std::list< Dependency > Dependencies;
+        typedef Dependencies * OptionalDependencies;
+        typedef OptionalDependencies (*DependenciesMethod) ();
 
         Info m_info;
-        CompileVersions m_dependencies;
+        OptionalDependencies m_dependencies;
+
+        CompileVersion () : m_info(), m_dependencies() {}
     };
 
     struct RuntimeVersion
     {
-        struct Module
-        {
-            typedef ::AutoVersion::Info::Attribute Alias;
-            typedef ::std::set< Alias > Aliases;
-
-            Info m_info;
-            Aliases m_aliases;
-
-            Module () : m_info() , m_aliases() { }
-        };
-
+        typedef ::AutoVersion::Module Module;
         typedef ::std::map< Module::Alias, Module > Modules;
         Modules m_modules;
     };
@@ -123,7 +135,7 @@ namespace AutoVersion
             return Status::Invalid;
 
         if ( compile[ Info::key( "version" ) ] != runtime[ Info::key( "version" ) ]
-            || compile[ Info::key( "revision moment" ) ] != runtime[ Info::key( "revision moment" ) ] )
+            || compile[ Info::key( "revision.moment" ) ] != runtime[ Info::key( "revision.moment" ) ] )
         {
             return Status::Different;
         }
@@ -145,16 +157,28 @@ namespace AutoVersion
         RuntimeVersion::Modules::const_iterator iter = runtime.m_modules.find( compile_info_ref[ Info::key( "product" ) ] );
         InfoPtr runtime_info_ptr = iter != runtime.m_modules.end() ? &(iter->second.m_info) : InfoPtr();
 
-        Status::Enum result = runtime_info_ptr ? infoStatus( compile_info_ref, *runtime_info_ptr ) : Status::Undefined;
+        Status::Enum result = Status::Undefined;
+        if ( runtime_info_ptr )
+            result = infoStatus( compile_info_ref, *runtime_info_ptr );
+        else if ( compile_info_ref[ Info::key( "compile.mode" ) ] == Info::attribute( "static" ) )
+            result = Status::Valid;
 
         // C++98 support
-        for ( CompileVersion::CompileVersions::const_iterator iter = compile.m_dependencies.begin();
-            result != Status::Invalid && iter != compile.m_dependencies.end(); ++iter )
+        if ( compile.m_dependencies )
         {
-            result = ::std::min( result, versionStatus( *iter, runtime ) );
+            for ( CompileVersion::Dependencies::const_iterator iter = compile.m_dependencies->begin();
+                  result != Status::Invalid && iter != compile.m_dependencies->end(); ++iter )
+            {
+                result = ::std::min( result, versionStatus( *iter/*->m_version_refer*/, runtime ) );
+            }
         }
 
         return result;
+    }
+
+    inline Status::Enum versionStatus ( const Version & version )
+    {
+        return versionStatus( version.m_compile, version.m_runtime );
     }
 }
 
