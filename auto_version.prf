@@ -306,7 +306,7 @@ defineTest( generateAutoVersionFiles ) \
         {
             CONFIG( debug, debug|release ) \
             {
-                QT_CORE_PRODUCT = "QtCore4d"
+                QT_CORE_PRODUCT = "QtCored4"
             } \
             else \
             {
