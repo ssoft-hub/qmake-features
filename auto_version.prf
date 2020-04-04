@@ -321,7 +321,6 @@ defineTest( generateAutoVersionFiles ) \
                 "$${tab}$${tab}qt_info.m_info[ ::AutoVersion::Info::key( \"description\" ) ] = ::AutoVersion::Info::attribute( \"C++ Application Development Framework\" );" \
                 "$${tab}$${tab}qt_info.m_info[ ::AutoVersion::Info::key( \"license\" ) ] = ::AutoVersion::Info::attribute( \"GPL and LGPLv2.1 open source licenses\" ) ;" \
                 "$${tab}$${tab}qt_info.m_info[ ::AutoVersion::Info::key( \"product\" ) ] = ::AutoVersion::Info::attribute( \"$${QT_CORE_PRODUCT}\" );" \
-                "$${tab}$${tab}qt_info.m_info[ ::AutoVersion::Info::key( \"revision\" ) ] = ::AutoVersion::Info::attribute( QT_VERSION_STR );" \
                 "$${tab}$${tab}qt_info.m_info[ ::AutoVersion::Info::key( \"vendor\" ) ] = ::AutoVersion::Info::attribute( \"The Qt Company Ltd.\" );" \
                 "$${tab}$${tab}qt_info.m_info[ ::AutoVersion::Info::key( \"version\" ) ] = ::AutoVersion::Info::attribute( QT_VERSION_STR );" \
                 "$${tab}$${tab}result.push_back( qt_info );" \
