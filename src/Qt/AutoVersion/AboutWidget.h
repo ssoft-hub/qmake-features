@@ -26,10 +26,14 @@ namespace AutoVersion
 
     private:
         AboutWidgetScoped m_ui;
+        QWidget * m_product_widget;
 
     public:
         explicit AboutWidget ( QWidget * const parent, Qt::WindowFlags flags = Qt::WindowFlags() );
         virtual ~AboutWidget ();
+
+        void setProductWidget ( QWidget * widget );
+        QWidget * productWidget ();
     };
 }
 
@@ -42,11 +46,15 @@ namespace AutoVersion
         Q_DISABLE_COPY( AboutDialog )
 
     private:
-        typedef AboutWidget ThisType;
+        typedef AboutDialog ThisType;
         typedef QDialog ParentType;
 
+    private:
+        explicit AboutDialog ( QWidget * const product, QWidget * const parent, Qt::WindowFlags flags = Qt::WindowFlags() );
+
     public:
-        explicit AboutDialog ( QWidget * const parent, Qt::WindowFlags flags = Qt::WindowFlags() );
+        static void execute ( QWidget * const parent, Qt::WindowFlags flags = Qt::WindowFlags() );
+        static void execute ( QWidget * const product, QWidget * const parent, Qt::WindowFlags flags = Qt::WindowFlags() );
     };
 }
 

@@ -20,16 +20,9 @@ namespace AutoVersion
     AboutWidget::AboutWidget ( QWidget * const parent, Qt::WindowFlags flags )
         : ParentType( parent, flags )
         , m_ui( new Ui::AboutWidget )
+        , m_product_widget()
     {
         m_ui->setupUi( this );
-
-        int pixmap_size = 128;//4 * name_font.pointSize();
-        setWindowIcon( QIcon( QString::fromUtf8( ":/Images/Images/topaz-logo-trans.png" ) ) );
-        m_ui->pixmap_label->setPixmap( QPixmap( ( QString::fromUtf8( ":/Images/Images/topaz-logo-trans.png" ) ) )
-            .scaled( pixmap_size, pixmap_size, Qt::KeepAspectRatio ) );
-
-        m_ui->version_tab_widget->setTabText( 0, trUtf8( "Дерево версий" ) );
-        m_ui->version_tab_widget->setTabText( 1, trUtf8( "Модули" ) );
 
     #ifdef AUTO_VERSION_USED
         ::AutoVersion::Version version = ::AutoVersion::version();
@@ -67,20 +60,54 @@ namespace AutoVersion
     {
         // explicit destruct AboutWidgetScoped m_ui;
     }
+
+    void AboutWidget::setProductWidget ( QWidget * widget )
+    {
+        if ( m_product_widget == widget )
+            return;
+        if ( m_product_widget )
+            delete m_product_widget;
+        m_product_widget = widget;
+        m_product_widget->setParent( this, Qt::WindowFlags() );
+        m_ui->product_layout->insertWidget( 0, m_product_widget );
+    }
 }
 
 namespace AutoVersion
 {
-    AboutDialog::AboutDialog ( QWidget * const parent, Qt::WindowFlags flags )
+    AboutDialog::AboutDialog ( QWidget * const product, QWidget * const parent, Qt::WindowFlags flags )
         : ParentType( parent, flags )
     {
         setLayout( new QVBoxLayout( this ) );
         layout()->setMargin( 0 );
-        layout()->addWidget( new AboutWidget( this ) );
+        AboutWidget * about_widget = new AboutWidget( this );
+        layout()->addWidget( about_widget );
+
+        if ( product )
+            about_widget->setProductWidget( product );
 
         if ( parent )
-            setWindowTitle( trUtf8( "О программе \"%1\"" ).arg( parent->windowTitle() ) );
+            setWindowTitle( trUtf8( "About program \"%1\"" ).arg( parent->windowTitle() ) );
         else
-            setWindowTitle( trUtf8( "О программе" ) );
+            setWindowTitle( trUtf8( "About program" ) );
+
+    }
+
+    void AboutDialog::execute ( QWidget * const parent, Qt::WindowFlags flags )
+    {
+        AboutDialog::execute( 0, parent, flags );
+    }
+
+    void AboutDialog::execute ( QWidget * const product, QWidget * const parent, Qt::WindowFlags flags )
+    {
+        AboutDialog dialog( product, parent, flags );
+        QSize size_hint = dialog.sizeHint();
+        if ( 3 * size_hint.height() > 2 * size_hint.width()  )
+        {
+            size_hint.setWidth( size_hint.height() * 3 / 2 );
+            size_hint.setHeight( dialog.minimumHeight() );
+            dialog.resize( size_hint );
+        }
+        dialog.exec();
     }
 }
