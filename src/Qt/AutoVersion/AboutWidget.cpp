@@ -101,13 +101,6 @@ namespace AutoVersion
     void AboutDialog::execute ( QWidget * const product, QWidget * const parent, Qt::WindowFlags flags )
     {
         AboutDialog dialog( product, parent, flags );
-        QSize size_hint = dialog.sizeHint();
-        if ( 3 * size_hint.height() > 2 * size_hint.width()  )
-        {
-            size_hint.setWidth( size_hint.height() * 3 / 2 );
-            size_hint.setHeight( dialog.minimumHeight() );
-            dialog.resize( size_hint );
-        }
         dialog.exec();
     }
 }
