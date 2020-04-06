@@ -94,7 +94,7 @@ namespace AutoVersion
         QFont font = QApplication::font();
         if ( compile_info[ "compile.mode" ] == ::AutoVersion::Info::attribute( "static" ) )
             font.setItalic( !font.italic() );
-        else if ( runtime_info[ key ] != compile_info[ key ] )
+        else if ( !runtime_info.m_attributes.empty() && runtime_info[ key ] != compile_info[ key ] )
             font.setBold( !font.bold() );
         return font;
     }
