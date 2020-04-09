@@ -16,19 +16,19 @@ namespace AutoVersion
         const ::AutoVersion::Info & info )
     {
         QString tool_tip;
-        tool_tip += QObject::trUtf8( "<b>%1:</b>" )
+        tool_tip += QString::fromLatin1( "<b>%1:</b>" )
             .arg( itemString( info[ "product" ] ) );
-        tool_tip += QObject::trUtf8( "<table>" );
+        tool_tip += QString::fromLatin1( "<table>" );
         for ( ::AutoVersion::Info::Attributes::const_iterator iter = info.m_attributes.begin();
             iter != info.m_attributes.end(); ++iter )
         {
-            tool_tip += QObject::trUtf8( "<tr>" );
-            tool_tip += QObject::trUtf8( "<td><i>%1:</i></td><td>\"%2\"</td>" )
+            tool_tip += QString::fromLatin1( "<tr>" );
+            tool_tip += QString::fromLatin1( "<td><i>%1:</i></td><td>\"%2\"</td>" )
                 .arg( itemString( iter->first ) )
                 .arg( itemString( iter->second ) );
-            tool_tip += QObject::trUtf8( "</tr>" );
+            tool_tip += QString::fromLatin1( "</tr>" );
         }
-        tool_tip += QObject::trUtf8( "</table>" );
+        tool_tip += QString::fromLatin1( "</table>" );
         return tool_tip;
     }
 }

@@ -37,42 +37,45 @@ namespace AutoVersion
         if ( key == "product" )
         {
             QString tool_tip;
-            tool_tip += QObject::trUtf8( "<b>Cборка:</b>" );
-            tool_tip += QObject::trUtf8( "<table>" );
+            tool_tip += QString::fromLatin1( "<b>%1</b>" ).arg( VersionModel::trUtf8( "Cборка:" ) );
+            tool_tip += QString::fromLatin1( "<table>" );
             for ( ::AutoVersion::Info::Attributes::const_iterator iter = compile_info.m_attributes.begin();
                 iter != compile_info.m_attributes.end(); ++iter )
             {
-                tool_tip += QObject::trUtf8( "<tr>" );
-                tool_tip += QObject::trUtf8( "<td><i>%1:</i></td><td>\"%2\"</td>" )
+                tool_tip += QString::fromLatin1( "<tr>" );
+                tool_tip += QString::fromLatin1( "<td><i>%1:</i></td><td>\"%2\"</td>" )
                     .arg( itemString( iter->first ) )
                     .arg( itemString( iter->second ) );
-                tool_tip += QObject::trUtf8( "</tr>" );
+                tool_tip += QString::fromLatin1( "</tr>" );
             }
-            tool_tip += QObject::trUtf8( "</table>" );
-            tool_tip += QObject::trUtf8( "<hr>" );
+            tool_tip += QString::fromLatin1( "</table>" );
+            tool_tip += QString::fromLatin1( "<hr>" );
 
-            tool_tip += QObject::trUtf8( "<b>Выполнение:</b>" );
-            tool_tip += QObject::trUtf8( "<table>" );
+            tool_tip += QString::fromLatin1( "<b>%1</b>" ).arg( VersionModel::trUtf8( "Выполнение:" ) );
+            tool_tip += QString::fromLatin1( "<table>" );
             for ( ::AutoVersion::Info::Attributes::const_iterator iter = runtime_info.m_attributes.begin();
                 iter != runtime_info.m_attributes.end(); ++iter )
             {
-                tool_tip += QObject::trUtf8( "<tr>" );
-                tool_tip += QObject::trUtf8( "<td><i>%1:</i></td><td>\"%2\"</td>" )
+                tool_tip += QString::fromLatin1( "<tr>" );
+                tool_tip += QString::fromLatin1( "<td><i>%1:</i></td><td>\"%2\"</td>" )
                     .arg( itemString( iter->first ) )
                     .arg( itemString( iter->second ) );
-                tool_tip += QObject::trUtf8( "</tr>" );
+                tool_tip += QString::fromLatin1( "</tr>" );
             }
-            tool_tip += QObject::trUtf8( "</table>" );
+            tool_tip += QString::fromLatin1( "</table>" );
             return tool_tip;
         }
         else if ( compile_info[ "compile.mode" ] == ::AutoVersion::Info::attribute( "static" ) )
         {
-            return QObject::trUtf8( "<b>Сборка:</b> %1" )
+            return QString::fromLatin1( "<b>%1:</b> %2" )
+                .arg( VersionModel::trUtf8( "Сборка:" ) )
                 .arg( itemString( compile_info[ key ] ) );
         }
 
-        return QObject::trUtf8( "<b>Cборка:</b> %1<br/><b>Выполнение:</b> %2" )
+        return QString::fromLatin1( "<b>%1:</b> %2<br/><b>%3:</b> %4" )
+            .arg( VersionModel::trUtf8( "Cборка:" ) )
             .arg( itemString( compile_info[ key ] ) )
+            .arg( VersionModel::trUtf8( "Выполнение:" ) )
             .arg( itemString( runtime_info[ key ] ) );
     }
 
