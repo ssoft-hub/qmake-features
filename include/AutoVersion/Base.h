@@ -294,19 +294,14 @@ namespace AutoVersion
         {
             size_t m_tab_count;
             ::std::string m_tab_fill;
-            ::std::string m_value_fill;
-            ::std::string m_block_begin;
-            ::std::string m_block_end;
+            ::std::string m_record_pattern;
+            ::std::string m_block_pattern;
 
             Format ()
                 : m_tab_count()
                 , m_tab_fill( "    " )
-                // TODO:
-                //, m_block_pattern( "$${tab}{\n$${block}\n$${tab}}\n" )
-                //, m_record_pattern( "$${tab}$${key}: $${value}\n" )
-                , m_value_fill( ": " )
-                , m_block_begin( "{" )
-                , m_block_end( "}" )
+                , m_record_pattern( "$${tab}$${key}: $${value}\n" )
+                , m_block_pattern( "$${tab}{\n$${block}$${tab}}\n" )
             {}
         };
 
@@ -318,6 +313,17 @@ namespace AutoVersion
             : m_stream( stream )
             , m_format()
         {}
+
+        void outputTab ()
+        {
+            for ( size_t i = 0; i < m_format.m_tab_count; ++i )
+                *this << m_format.m_tab_fill;
+        }
+
+        void outputPattern ( const ::std::string & pattern, size_t begin, size_t end )
+        {
+            m_stream << ::std::string( pattern.begin() + begin, pattern.begin() + end );
+        }
 
         ThisType & operator << ( const char * value )
         {
@@ -347,50 +353,83 @@ namespace AutoVersion
             return *this;
         }
 
-        template < typename _Type >
-        ThisType & operator << ( const _Type & value )
-        {
-            m_stream << value;
-            return *this;
-        }
-
         template < typename _Key, typename _Value >
         ThisType & operator << ( const ::AutoVersion::Record< _Key, _Value > & value )
         {
-            for ( size_t i = 0; i < m_format.m_tab_count; ++i )
-                *this << m_format.m_tab_fill;
+            ::std::string::size_type index = ::std::string::size_type();
 
-            *this
-                << value.m_key
-                << m_format.m_value_fill
-                << value.m_value
-                << '\n';
+            do
+            {
+                ::std::string::size_type tab_index = m_format.m_record_pattern.find( "$${tab}", index );
+                ::std::string::size_type key_index = m_format.m_record_pattern.find( "$${key}", index );
+                ::std::string::size_type value_index = m_format.m_record_pattern.find( "$${value}", index );
+
+                ::std::string::size_type begin_index = index;
+                ::std::string::size_type end_index = ::std::min( tab_index, ::std::min( key_index, value_index ) );
+
+                if ( end_index == ::std::string::npos )
+                {
+                    end_index = m_format.m_record_pattern.size();
+                    index = ::std::string::npos;
+                }
+                else if ( end_index == tab_index )
+                    index = end_index + 7; // $${tab}
+                else if ( end_index == key_index )
+                    index = end_index + 7; // $${key}
+                else if ( end_index == value_index )
+                    index = end_index + 9; // $${value}
+
+                outputPattern( m_format.m_record_pattern, begin_index, end_index );
+                if ( end_index == tab_index )
+                    outputTab();
+                if ( end_index == key_index )
+                    *this << value.m_key;
+                if ( end_index == value_index )
+                    *this << value.m_value;
+            }
+            while ( index != ::std::string::npos );
+
             return *this;
         }
 
         template < typename _Type >
         ThisType & operator << ( const ::AutoVersion::Block< _Type > & value )
         {
-            for ( size_t i = 0; i < m_format.m_tab_count; ++i )
-                *this << m_format.m_tab_fill;
-            *this
-                << m_format.m_block_begin
-                << '\n';
+            ::std::string::size_type index = ::std::string::size_type();
 
-            ++m_format.m_tab_count;
-            *this
-                << value.m_value;
+            do
+            {
+                ::std::string::size_type tab_index = m_format.m_block_pattern.find( "$${tab}", index );
+                ::std::string::size_type block_index = m_format.m_block_pattern.find( "$${block}", index );
 
-            --m_format.m_tab_count;
-            for ( size_t i = 0; i < m_format.m_tab_count; ++i )
-                *this << m_format.m_tab_fill;
+                ::std::string::size_type begin_index = index;
+                ::std::string::size_type end_index = ::std::min( tab_index, block_index );
 
-            *this
-                << m_format.m_block_end
-                << '\n';
+                if ( end_index == ::std::string::npos )
+                {
+                    end_index = m_format.m_block_pattern.size();
+                    index = ::std::string::npos;
+                }
+                else if ( end_index == tab_index )
+                    index = end_index + 7; // $${tab}
+                else if ( end_index == block_index )
+                    index = end_index + 9; // $${block}
+
+                outputPattern( m_format.m_block_pattern, begin_index, end_index );
+                if ( end_index == tab_index )
+                    outputTab();
+                if ( end_index == block_index )
+                {
+                    ++m_format.m_tab_count;
+                    *this << value.m_value;
+                    --m_format.m_tab_count;
+                }
+            }
+            while ( index != ::std::string::npos );
 
             return *this;
-        }    };
+        }
+    };
 
     template < typename _Stream >
     FormatedOutStream< _Stream > formatedOutStream ( _Stream & stream )
@@ -406,7 +445,7 @@ namespace AutoVersion
 }
 
 template < typename _Stream >
-#if ( __cplusplus >= 1201103L )
+#if ( __cplusplus >= 201103L )
 inline _Stream & operator << ( _Stream && stream, ::AutoVersion::Status::Enum value )
 {
 #else
@@ -424,7 +463,7 @@ inline _Stream & operator << ( _Stream & stream, ::AutoVersion::Status::Enum val
 }
 
 template < typename _Stream >
-#if ( __cplusplus >= 1201103L )
+#if ( __cplusplus >= 201103L )
 inline _Stream & operator << ( _Stream && stream, const ::AutoVersion::Info & value )
 {
 #else
@@ -442,7 +481,7 @@ inline _Stream & operator << ( const _Stream & cstream, const ::AutoVersion::Inf
 }
 
 template < typename _Stream >
-#if ( __cplusplus >= 1201103L )
+#if ( __cplusplus >= 201103L )
 inline _Stream & operator << ( _Stream && stream, const ::AutoVersion::RuntimeVersion & value )
 {
 #else
@@ -461,7 +500,7 @@ inline _Stream & operator << ( const _Stream & cstream, const ::AutoVersion::Run
 }
 
 template < typename _Stream >
-#if ( __cplusplus >= 1201103L )
+#if ( __cplusplus >= 201103L )
 inline _Stream & operator << ( _Stream && stream, const ::AutoVersion::CompileVersion & value )
 {
 #else
@@ -485,7 +524,7 @@ inline _Stream & operator << ( const _Stream & cstream, const ::AutoVersion::Com
 }
 
 template < typename _Stream >
-#if ( __cplusplus >= 1201103L )
+#if ( __cplusplus >= 201103L )
 inline _Stream & operator << ( _Stream && stream, const ::AutoVersion::VersionView & value )
 {
 #else
@@ -517,7 +556,7 @@ inline _Stream & operator << ( const _Stream & cstream, const ::AutoVersion::Ver
 }
 
 template < typename _Stream >
-#if ( __cplusplus >= 1201103L )
+#if ( __cplusplus >= 201103L )
 inline _Stream & operator << ( _Stream && stream, const ::AutoVersion::Version & value )
 {
 #else
