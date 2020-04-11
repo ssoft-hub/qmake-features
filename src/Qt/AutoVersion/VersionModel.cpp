@@ -167,7 +167,7 @@ namespace AutoVersion
             return QVariant::fromValue( itemFont( build_info, runtime_info, keys[ index.column() ] ) );
         case Qt::DecorationRole:
             if ( index.column() == Column::Product )
-                return QVariant::fromValue( QIcon( itemImagePath( ::AutoVersion::versionStatus( item_ptr->m_compile_ref, m_version.m_runtime ) ) ) );
+                return QVariant::fromValue( QIcon( itemImagePath( ::AutoVersion::versionStatus( ::AutoVersion::VersionView( item_ptr->m_compile_ref, m_version.m_runtime ) ) ) ) );
             break;
         default:
             break;

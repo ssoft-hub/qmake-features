@@ -7,6 +7,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <ostream>
 
 namespace AutoVersion
 {
@@ -97,12 +98,22 @@ namespace AutoVersion
         CompileVersion m_compile;
         RuntimeVersion m_runtime;
     };
+
+    struct VersionView
+    {
+        const CompileVersion & m_compile;
+        const RuntimeVersion & m_runtime;
+
+        VersionView ( const CompileVersion & compile, const RuntimeVersion & runtime )
+            : m_compile( compile ), m_runtime( runtime )
+        {}
+    };
 }
 
 namespace AutoVersion
 {
     /*!
-     * Version status enumeration.
+     * Status enumeration.
      */
     struct Status
     {
@@ -148,10 +159,13 @@ namespace AutoVersion
      *
      * Searches all status of module dependencies and returnds worst of them.
      */
-    inline Status::Enum versionStatus ( const CompileVersion & compile, const RuntimeVersion & runtime )
+    inline Status::Enum versionStatus ( const VersionView & version )
     {
         typedef const Info & InfoRef;
         typedef const Info * InfoPtr;
+
+        const CompileVersion & compile = version.m_compile;
+        const RuntimeVersion & runtime = version.m_runtime;
 
         InfoRef compile_info_ref = compile.m_info;
         RuntimeVersion::Modules::const_iterator iter = runtime.m_modules.find( compile_info_ref[ Info::key( "product" ) ] );
@@ -169,7 +183,7 @@ namespace AutoVersion
             for ( CompileVersion::Dependencies::const_iterator iter = compile.m_dependencies->begin();
                   result != Status::Invalid && iter != compile.m_dependencies->end(); ++iter )
             {
-                result = ::std::min( result, versionStatus( *iter/*->m_version_refer*/, runtime ) );
+                result = ::std::min( result, versionStatus( VersionView( *iter/*->m_version_refer*/, runtime ) ) );
             }
         }
 
@@ -178,8 +192,365 @@ namespace AutoVersion
 
     inline Status::Enum versionStatus ( const Version & version )
     {
-        return versionStatus( version.m_compile, version.m_runtime );
+        return versionStatus( VersionView( version.m_compile, version.m_runtime ) );
     }
 }
+
+namespace AutoVersion
+{
+    template < typename _Type >
+    struct Block
+    {
+        typedef _Type Value;
+        const Value & m_value;
+        Block ( const Value & value ) : m_value( value ) {}
+    };
+
+    template < typename _Key, typename _Value >
+    struct Record
+    {
+        typedef _Key Key;
+        typedef _Value Value;
+        const Key & m_key;
+        const Value & m_value;
+        Record ( const Key & key, const Value & value ) : m_key( key ), m_value( value ) {}
+    };
+
+    template < typename _Type >
+    Block< _Type > block ( const _Type & value )
+    {
+        return Block< _Type >( value );
+    }
+
+    template < typename _Key, typename _Value >
+    Record< _Key, _Value > record ( const _Key & key, const _Value & value )
+    {
+        return Record< _Key, _Value >( key, value );
+    }
+
+    template < typename _Stream >
+    struct StringOutHelper
+    {
+        typedef _Stream Stream;
+        Stream & m_stream;
+
+        StringOutHelper ( Stream & stream ) : m_stream( stream ) {}
+        void output ( const char * value ) { m_stream << value; }
+        void output ( const wchar_t * value ) { m_stream << value; }
+        void output ( const ::std::string & value ) { m_stream << value; }
+        void output ( const ::std::wstring & value ) { m_stream << value; }
+    };
+
+    template <>
+    struct StringOutHelper< ::std::ostream >
+    {
+        typedef ::std::ostream Stream;
+        Stream & m_stream;
+
+        StringOutHelper ( Stream & stream ) : m_stream( stream ) {}
+        void output ( const char * value ) { m_stream << value; }
+        void output ( const wchar_t * value ) { m_stream << ::std::string( value, value + wcslen( value ) ); }
+        void output ( const ::std::string & value ) { m_stream << value; }
+        void output ( const ::std::wstring & value ) { m_stream << ::std::string( value.begin(), value.end() ); }
+    };
+
+    template <>
+    struct StringOutHelper< ::std::wostream >
+    {
+        typedef ::std::wostream Stream;
+        Stream & m_stream;
+
+        StringOutHelper ( Stream & stream ) : m_stream( stream ) {}
+        void output ( const char * value ) { m_stream << ::std::wstring( value, value + strlen( value ) ); }
+        void output ( const wchar_t * value ) { m_stream << value; }
+        void output ( const ::std::string & value ) { m_stream << ::std::wstring( value.begin(), value.end() ); }
+        void output ( const ::std::wstring & value ) { m_stream << value; }
+    };
+
+    template < typename _Stream >
+    inline StringOutHelper< _Stream > stringOutHelper( _Stream & stream )
+    {
+        return StringOutHelper< _Stream >( stream );
+    }
+
+    inline StringOutHelper< ::std::ostream > stringOutHelper( ::std::ostream & stream )
+    {
+        return StringOutHelper< ::std::ostream >( stream );
+    }
+
+    inline StringOutHelper< ::std::wostream > stringOutHelper( ::std::wostream & stream )
+    {
+        return StringOutHelper< ::std::wostream >( stream );
+    }
+
+    template < typename _Stream >
+    class FormatedOutStream
+    {
+        typedef FormatedOutStream ThisType;
+        typedef _Stream Stream;
+
+    public:
+        struct Format
+        {
+            size_t m_tab_count;
+            ::std::string m_tab_fill;
+            ::std::string m_value_fill;
+            ::std::string m_block_begin;
+            ::std::string m_block_end;
+
+            Format ()
+                : m_tab_count()
+                , m_tab_fill( "    " )
+                // TODO:
+                //, m_block_pattern( "$${tab}{\n$${block}\n$${tab}}\n" )
+                //, m_record_pattern( "$${tab}$${key}: $${value}\n" )
+                , m_value_fill( ": " )
+                , m_block_begin( "{" )
+                , m_block_end( "}" )
+            {}
+        };
+
+    public:
+        Stream & m_stream;
+        Format m_format;
+
+        FormatedOutStream ( Stream & stream )
+            : m_stream( stream )
+            , m_format()
+        {}
+
+        ThisType & operator << ( const char * value )
+        {
+            if ( value )
+                stringOutHelper( m_stream ).output( value );
+            return *this;
+        }
+
+        ThisType & operator << ( const wchar_t * value )
+        {
+            if ( value )
+                stringOutHelper( m_stream ).output( value );
+            return *this;
+        }
+
+        ThisType & operator << ( const ::std::string & value )
+        {
+            if ( !value.empty() )
+                stringOutHelper( m_stream ).output( value );
+            return *this;
+        }
+
+        ThisType & operator << ( const ::std::wstring & value )
+        {
+            if ( !value.empty() )
+                stringOutHelper( m_stream ).output( value );
+            return *this;
+        }
+
+        template < typename _Type >
+        ThisType & operator << ( const _Type & value )
+        {
+            m_stream << value;
+            return *this;
+        }
+
+        template < typename _Key, typename _Value >
+        ThisType & operator << ( const ::AutoVersion::Record< _Key, _Value > & value )
+        {
+            for ( size_t i = 0; i < m_format.m_tab_count; ++i )
+                *this << m_format.m_tab_fill;
+
+            *this
+                << value.m_key
+                << m_format.m_value_fill
+                << value.m_value
+                << '\n';
+            return *this;
+        }
+
+        template < typename _Type >
+        ThisType & operator << ( const ::AutoVersion::Block< _Type > & value )
+        {
+            for ( size_t i = 0; i < m_format.m_tab_count; ++i )
+                *this << m_format.m_tab_fill;
+            *this
+                << m_format.m_block_begin
+                << '\n';
+
+            ++m_format.m_tab_count;
+            *this
+                << value.m_value;
+
+            --m_format.m_tab_count;
+            for ( size_t i = 0; i < m_format.m_tab_count; ++i )
+                *this << m_format.m_tab_fill;
+
+            *this
+                << m_format.m_block_end
+                << '\n';
+
+            return *this;
+        }    };
+
+    template < typename _Stream >
+    FormatedOutStream< _Stream > formatedOutStream ( _Stream & stream )
+    {
+        return FormatedOutStream< _Stream >( stream );
+    }
+
+    template < typename _Stream >
+    FormatedOutStream< _Stream > & formatedOutStream ( FormatedOutStream< _Stream > & stream )
+    {
+        return stream;
+    }
+}
+
+template < typename _Stream >
+#if ( __cplusplus >= 1201103L )
+inline _Stream & operator << ( _Stream && stream, ::AutoVersion::Status::Enum value )
+{
+#else
+inline _Stream & operator << ( _Stream & stream, ::AutoVersion::Status::Enum value )
+{
+#endif
+    switch ( value )
+    {
+    case ::AutoVersion::Status::Invalid: stream << "Invalid"; break;
+    case ::AutoVersion::Status::Different: stream << "Different"; break;
+    case ::AutoVersion::Status::Valid: stream << "Valid"; break;
+    case ::AutoVersion::Status::Undefined: stream << "Undefined"; break;
+    }
+    return stream;
+}
+
+template < typename _Stream >
+#if ( __cplusplus >= 1201103L )
+inline _Stream & operator << ( _Stream && stream, const ::AutoVersion::Info & value )
+{
+#else
+inline _Stream & operator << ( const _Stream & cstream, const ::AutoVersion::Info & value )
+{
+    _Stream & stream = const_cast< _Stream & >( cstream );
+#endif
+    for ( ::AutoVersion::Info::Attributes::const_iterator iter = value.m_attributes.begin();
+          iter != value.m_attributes.end(); ++iter )
+    {
+        ::AutoVersion::formatedOutStream( stream )
+            << ::AutoVersion::record( iter->first, iter->second );
+    }
+    return stream;
+}
+
+template < typename _Stream >
+#if ( __cplusplus >= 1201103L )
+inline _Stream & operator << ( _Stream && stream, const ::AutoVersion::RuntimeVersion & value )
+{
+#else
+inline _Stream & operator << ( const _Stream & cstream, const ::AutoVersion::RuntimeVersion & value )
+{
+    _Stream & stream = const_cast< _Stream & >( cstream );
+#endif
+    for ( ::AutoVersion::RuntimeVersion::Modules::const_iterator iter = value.m_modules.begin();
+          iter != value.m_modules.end(); ++iter )
+    {
+        ::AutoVersion::formatedOutStream( stream )
+            << ::AutoVersion::record( "Module", iter->first )
+            << ::AutoVersion::block( iter->second.m_info );
+    }
+    return stream;
+}
+
+template < typename _Stream >
+#if ( __cplusplus >= 1201103L )
+inline _Stream & operator << ( _Stream && stream, const ::AutoVersion::CompileVersion & value )
+{
+#else
+inline _Stream & operator << ( const _Stream & cstream, const ::AutoVersion::CompileVersion & value )
+{
+    _Stream & stream = const_cast< _Stream & >( cstream );
+#endif
+    ::AutoVersion::formatedOutStream( stream )
+        << ::AutoVersion::block( value.m_info )
+        << ::AutoVersion::record( "Dependencies", "" );
+    if ( value.m_dependencies )
+    {
+        for ( ::AutoVersion::CompileVersion::Dependencies::const_iterator iter = value.m_dependencies->begin();
+              iter != value.m_dependencies->end(); ++iter )
+        {
+            ::AutoVersion::formatedOutStream( stream )
+                << ::AutoVersion::block( *iter );
+        }
+    }
+    return stream;
+}
+
+template < typename _Stream >
+#if ( __cplusplus >= 1201103L )
+inline _Stream & operator << ( _Stream && stream, const ::AutoVersion::VersionView & value )
+{
+#else
+inline _Stream & operator << ( const _Stream & cstream, const ::AutoVersion::VersionView & value )
+{
+    _Stream & stream = const_cast< _Stream & >( cstream );
+#endif
+
+    const ::AutoVersion::CompileVersion & compile = value.m_compile;
+    const ::AutoVersion::RuntimeVersion & runtime = value.m_runtime;
+
+    ::AutoVersion::formatedOutStream( stream )
+       << ::AutoVersion::record( "Product", compile.m_info[ ::AutoVersion::Info::key( "product" ) ] )
+       << ::AutoVersion::record( "Status", ::AutoVersion::versionStatus( value ) )
+       << ::AutoVersion::block( compile.m_info );
+
+    ::AutoVersion::formatedOutStream( stream )
+        << ::AutoVersion::record( "Dependencies", "" );
+    if ( compile.m_dependencies )
+    {
+        for ( ::AutoVersion::CompileVersion::Dependencies::const_iterator iter = compile.m_dependencies->begin();
+              iter != compile.m_dependencies->end(); ++iter )
+        {
+            ::AutoVersion::formatedOutStream( stream )
+                << ::AutoVersion::block( ::AutoVersion::VersionView( *iter, runtime ) );
+        }
+    }
+    return stream;
+}
+
+template < typename _Stream >
+#if ( __cplusplus >= 1201103L )
+inline _Stream & operator << ( _Stream && stream, const ::AutoVersion::Version & value )
+{
+#else
+inline _Stream & operator << ( const _Stream & cstream, const ::AutoVersion::Version & value )
+{
+    _Stream & stream = const_cast< _Stream & >( cstream );
+#endif
+    ::AutoVersion::formatedOutStream( stream )
+        << ::AutoVersion::record( "Version", "" )
+        << ::AutoVersion::block( ::AutoVersion::VersionView( value.m_compile, value.m_runtime ) )
+        << ::AutoVersion::record( "Modules", "" )
+        << ::AutoVersion::block( value.m_runtime );
+    return stream;
+}
+
+//class QDebug;
+//class QTextStream;
+
+//namespace AutoVersion
+//{
+//    template <>
+//    struct StringOutHelper< QDebug >
+//    {
+//        typedef QDebug Stream;
+//        QDebug & m_stream;
+
+//        StringOutHelper ( Stream & stream ) : m_stream( stream ) {}
+//        void output ( const char * value ) { m_stream << QString::fromLocal8Bit( value ); }
+//        void output ( const wchar_t * value ) { m_stream << QString::fromWCharArray( value ); }
+//        void output ( const ::std::string & value ) { m_stream << QString::fromStdString( value ); }
+//        void output ( const ::std::wstring & value ) { m_stream << QString::fromStdWString( value ); }
+//    };
+//}
+
 
 #endif
