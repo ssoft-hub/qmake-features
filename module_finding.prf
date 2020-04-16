@@ -48,8 +48,8 @@ defineTest( recursiveDefineDependencyDirectories ) \
 }
 
 # Main
-!contains( TEMPLATE, .*subdirs ) \
-{
+#!contains( TEMPLATE, .*subdirs ) \
+#{
     # Попытка загрузить кеш с перечнем модулей
     win32 | win64 \
     {
@@ -107,4 +107,4 @@ defineTest( recursiveDefineDependencyDirectories ) \
         for( module_path, DEPEND_PATH ) : \
             appendToFile( "$${DEPENDS_CACHE_FILE}", \""$${module_path}\" \\" )
     }
-}
+#}
