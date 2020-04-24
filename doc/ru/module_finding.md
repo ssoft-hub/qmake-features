@@ -51,9 +51,9 @@ SUBDIRS *= \
 | Тип        | Сообщение | Описание |
 |------------|-----------|----------|
 | Ошибка     | Can not find feature "qmake_conf_path". | Не найдена фитча qmake_conf_path, необходимая для определения расположения общего файла конфигурации ".qmake.conf". |
-| Информация | Find modules into: "\<dir\>". | Надены файлы .prf в директории \<dir\>, значение директории добавлено в переменную DEPEND_PATH. |
-| Информация | Save cached path to "\<base\>/.depends.cache". | Значение переменной DEPEND_PATH записано в файл кеша "\<base\>/.depends.cache". |
-| Информация | Load cached path from "\<base\>/.depends.cache". | Значение переменной DEPEND_PATH зачитано из файла кеша "\<base\>/.depends.cache". |
+| Информация | Modules found in: "\<dir\>". | Надены файлы .prf в директории \<dir\>, значение директории добавлено в переменную DEPEND_PATH. |
+| Информация | Saving a cached path to "\<base\>/.depends.cache". | Значение переменной DEPEND_PATH записано в файл кеша "\<base\>/.depends.cache". |
+| Информация | Loading a cached path from "\<base\>/.depends.cache". | Значение переменной DEPEND_PATH зачитано из файла кеша "\<base\>/.depends.cache". |
 
 ## Зависимости
 
