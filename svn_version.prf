@@ -102,4 +102,4 @@ defineTest( defineSvnVersion ) \
 }
 
 # Main
-defineSvnVersion()
+!qtc_run : defineSvnVersion()

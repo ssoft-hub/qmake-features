@@ -50,4 +50,4 @@ defineTest( defineGitVersion ) \
 }
 
 # Main
-defineGitVersion()
+!qtc_run : defineGitVersion()

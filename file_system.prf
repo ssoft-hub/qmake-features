@@ -132,6 +132,30 @@ defineTest( writeToFile ) \
     }
 }
 
+defineTest( copyFile ) \
+{
+    source = $${1}
+    destination = $${2}
+
+    win32 | win64 \
+    {
+        COMMAND = "copy /Y \"$${source}\" \"$${destination}\""
+    } \
+    else \
+    {
+        COMMAND = "cp  \"$${source}\" \"$${destination}\""
+    }
+
+    !system( "$${COMMAND}" ) \
+    {
+        messageLogging( "System command: \"$${COMMAND}\"" )
+        errorLogging( "Can not copy file \"$${ARGS}\"" )
+        return( false )
+    }
+
+    return( true )
+}
+
 # Find direcrory with value
 # example: findUpperDirectoryWith( bin, /home/user/working )
 defineReplace( findUpperDirectoryWith ) \

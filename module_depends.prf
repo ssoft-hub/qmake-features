@@ -21,7 +21,7 @@ defineTest( loadDependency ) \
 
             exists( "$${project_entry}" ) \
             {
-                messageLogging( Load dependency $${module} from \"$${project_entry}\" )
+                messageLogging( Loading the dependency $${module} from \"$${project_entry}\" )
                 include( "$${project_entry}" )
                 DEPENDS.progress = $${DEPENDS}
             } \

@@ -346,8 +346,8 @@ void printVersion ()
 | Тип        | Сообщение | Описание |
 |------------|-----------|----------|
 | Ошибка     | Can not find feature ... . | Не найдена фитча ... . |
-| Информация | Generate version header file $${AUTO_VERSION.header_file}. | Генерация заголовочного файла $${AUTO_VERSION.header_file}. |
-| Информация | Generate version source file $${AUTO_VERSION.source_file}. | Генерация исходного файла $${AUTO_VERSION.source_file}. |
+| Информация | Creating the versioned header file $${AUTO_VERSION.header_file}. | Генерация заголовочного файла $${AUTO_VERSION.header_file}. |
+| Информация | Creating the versioned source file $${AUTO_VERSION.source_file}. | Генерация исходного файла $${AUTO_VERSION.source_file}. |
 
 ## Зависимости
 

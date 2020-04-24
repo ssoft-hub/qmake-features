@@ -370,13 +370,13 @@ defineTest( generateAutoVersionFiles ) \
             "}"
     }
 
-    messageLogging( Generate version header file $${AUTO_VERSION.header_file}. )
+    messageLogging( Creating the versioned header file $${AUTO_VERSION.header_file}. )
     !writeToFile( "$${AUTO_VERSION.header_file}", $${AUTO_VERSION_H_CONTENTS} ) : \
         return( false )
 
     !isEqual( AUTO_VERSION.variant, header_only ) \
     {
-        messageLogging( Generate version source file $${AUTO_VERSION.source_file}. )
+        messageLogging( Creating the versioned source file $${AUTO_VERSION.source_file}. )
         !writeToFile( "$${AUTO_VERSION.source_file}", $${AUTO_VERSION_CPP_CONTENTS} ) : \
             return( false )
     } \
@@ -429,7 +429,7 @@ defineTest( generateAutoVersionFiles ) \
     return( true )
 }
 
-!contains( TEMPLATE, .*subdirs ) : \
+!qtc_run : !contains( TEMPLATE, .*subdirs ) : \
     !generateAutoVersionFiles() : \
         errorLogging( AutoVersion files generation failed. )
 
