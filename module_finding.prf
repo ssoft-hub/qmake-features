@@ -53,11 +53,11 @@ defineTest( recursiveDefineDependencyDirectories ) \
     # Попытка загрузить кеш с перечнем модулей
     win32 | win64 \
     {
-        DEPENDS_CACHE_FILE = "$${QMAKE_CONF.pwd}\\.depends.cache"
+        DEPENDS_CACHE_FILE = "$${QMAKE_CONF.pwd}\\depends.cache"
     } \
     else \
     {
-        DEPENDS_CACHE_FILE = "$${QMAKE_CONF.pwd}/.depends.cache"
+        DEPENDS_CACHE_FILE = "$${QMAKE_CONF.pwd}/depends.cache"
     }
 
     # Если нужно сформировать кэш, то текущий не используется
@@ -74,25 +74,10 @@ defineTest( recursiveDefineDependencyDirectories ) \
             messageLogging( Loading a cached path from $${DEPENDS_CACHE_FILE}. )
             include( $${DEPENDS_CACHE_FILE} )
 
-            # Решение проблемы парсинга Qt Creator (начиная где-то с версии 4.5), когда файл .depends.cache не зачитывается
+            # Решение проблемы парсинга Qt Creator (начиная где-то с версии 4.5), когда файл depends.cache не зачитывается
             isEmpty( DEPEND_PATH ) \
             {
-                messageLogging( "Hacking parsing issue (Qt Creator cannot include a hiden file)." )
-                win32 | win64 \
-                {
-                    ALTERNATIVE_DEPENDS_CACHE_FILE = "$${QMAKE_CONF.pwd}\\depends.cache"
-                } \
-                else \
-                {
-                    ALTERNATIVE_DEPENDS_CACHE_FILE = "$${QMAKE_CONF.pwd}/depends.cache"
-                }
-                copyFile( "$${DEPENDS_CACHE_FILE}", "$${ALTERNATIVE_DEPENDS_CACHE_FILE}" ) : \
-                    include( $${ALTERNATIVE_DEPENDS_CACHE_FILE} )
-                isEmpty( DEPEND_PATH ) \
-                {
-                    messageLogging( "Hacking error. The full finding will be used." )
-                    DEPENDS_CACHE_CONFIG *= unuse_depends_cache
-                }
+                DEPENDS_CACHE_CONFIG *= unuse_depends_cache
             }
         } \
         else \
@@ -120,7 +105,7 @@ defineTest( recursiveDefineDependencyDirectories ) \
     # Если нужно сформировать файл с кэшем
     contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) \
     {
-        # Механизм QMAKE_SUBSTITUTES с параметром .depends.cache.in не работает для msvc,
+        # Механизм QMAKE_SUBSTITUTES с параметром depends.cache.in не работает для msvc,
         # поэтому формирование файла реализовано через echo с перенаправлением в файл.
         messageLogging( Saving a cached path to $${DEPENDS_CACHE_FILE}. )
         makeEmptyFile( "$${DEPENDS_CACHE_FILE}" )
