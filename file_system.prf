@@ -82,7 +82,7 @@ defineTest( appendToFile ) \
                 #file_line = $$replace( file_line, "|", "^|" )
                 file_line = $$replace( file_line, "<", "^<" )
                 file_line = $$replace( file_line, ">", "^>" )
-                file_line = $$replace( file_line, "&", "^&" )
+                file_line = $$replace( file_line, " &", " ^&" )
 
                 COMMAND = "echo $${file_line}>> \"$${file_path}\""
             } \
