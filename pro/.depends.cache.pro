@@ -6,4 +6,4 @@ DEPENDS_CACHE_CONFIG *= make_depends_cache
 
 load( qmake_conf_path )
 OTHER_FILES *= \
-    $${QMAKE_CONF.pwd}/depends.cache
+    $${QMAKE_CONF.pwd}/.depends.cache.pri

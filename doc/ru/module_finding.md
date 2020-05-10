@@ -12,7 +12,7 @@ DEPENDS *= \<module\>
 
 ## Кеширование значения DEPEND_PATH
 
-Чтобы не осуществлять поиск файлов с зависимостями для каждого прохода qmake, имеется возможность кешировать значение переменной DEPEND_PATH в файл $${QMAKE_CONF.pwd}/depends.cache. Для осуществления кеширования необходимо для переменной DEPENDS_CACHE_CONFIG добавить значение make_depends_cache
+Чтобы не осуществлять поиск файлов с зависимостями для каждого прохода qmake, имеется возможность кешировать значение переменной DEPEND_PATH в файл $${QMAKE_CONF.pwd}/.depends.cache.pri. Для осуществления кеширования необходимо для переменной DEPENDS_CACHE_CONFIG добавить значение make_depends_cache
 
 ```pro
 DEPENDS_CACHE_CONFIG *= make_depends_cache
@@ -52,8 +52,8 @@ SUBDIRS *= \
 |------------|-----------|----------|
 | Ошибка     | Can not find feature "qmake_conf_path". | Не найдена фитча qmake_conf_path, необходимая для определения расположения общего файла конфигурации ".qmake.conf". |
 | Информация | Modules found in: "\<dir\>". | Надены файлы .prf в директории \<dir\>, значение директории добавлено в переменную DEPEND_PATH. |
-| Информация | Saving a cached path to "\<base\>/depends.cache". | Значение переменной DEPEND_PATH записано в файл кеша "\<base\>/depends.cache". |
-| Информация | Loading a cached path from "\<base\>/depends.cache". | Значение переменной DEPEND_PATH зачитано из файла кеша "\<base\>/depends.cache". |
+| Информация | Saving a cached path to "\<base\>/.depends.cache.pri". | Значение переменной DEPEND_PATH записано в файл кеша "\<base\>/.depends.cache.pri". |
+| Информация | Loading a cached path from "\<base\>/.depends.cache.pri". | Значение переменной DEPEND_PATH зачитано из файла кеша "\<base\>/.depends.cache.pri". |
 
 ## Зависимости
 

@@ -51,14 +51,7 @@ defineTest( recursiveDefineDependencyDirectories ) \
 #!contains( TEMPLATE, .*subdirs ) \
 #{
     # Попытка загрузить кеш с перечнем модулей
-    win32 | win64 \
-    {
-        DEPENDS_CACHE_FILE = "$${QMAKE_CONF.pwd}\\depends.cache"
-    } \
-    else \
-    {
-        DEPENDS_CACHE_FILE = "$${QMAKE_CONF.pwd}/depends.cache"
-    }
+    DEPENDS_CACHE_FILE = "$${QMAKE_CONF.pwd}/.depends.cache.pri"
 
     # Если нужно сформировать кэш, то текущий не используется
     contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) : \
@@ -74,7 +67,7 @@ defineTest( recursiveDefineDependencyDirectories ) \
             messageLogging( Loading a cached path from $${DEPENDS_CACHE_FILE}. )
             include( $${DEPENDS_CACHE_FILE} )
 
-            # Решение проблемы парсинга Qt Creator (начиная где-то с версии 4.5), когда файл depends.cache не зачитывается
+            # Решение проблемы парсинга Qt Creator (начиная где-то с версии 4.5), когда файл .depends.cache.pri не зачитывается
             isEmpty( DEPEND_PATH ) \
             {
                 DEPENDS_CACHE_CONFIG *= unuse_depends_cache
@@ -105,7 +98,7 @@ defineTest( recursiveDefineDependencyDirectories ) \
     # Если нужно сформировать файл с кэшем
     contains( DEPENDS_CACHE_CONFIG, make_depends_cache ) \
     {
-        # Механизм QMAKE_SUBSTITUTES с параметром depends.cache.in не работает для msvc,
+        # Механизм QMAKE_SUBSTITUTES с параметром .depends.cache.pri.in не работает для msvc,
         # поэтому формирование файла реализовано через echo с перенаправлением в файл.
         messageLogging( Saving a cached path to $${DEPENDS_CACHE_FILE}. )
         makeEmptyFile( "$${DEPENDS_CACHE_FILE}" )
