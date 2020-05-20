@@ -7,18 +7,18 @@
 !load( svn_version ) : errorLogging( "Can not find feature \"svn_version\"" )
 !load( include_files ) : errorLogging( "Can not find feature \"include_files\"" )
 
+contains( TEMPLATE, .*lib ) : \
+    AUTO_VERSION.variant = lib
+
+CONFIG( static ) : \
+    AUTO_VERSION.variant = header_only
+
+contains( TEMPLATE, .*app ) : \
+    AUTO_VERSION.variant = app
+
 defineTest( generateAutoVersionFiles ) \
 {
     AUTO_VERSION.version =
-
-    contains( TEMPLATE, .*lib ) : \
-        AUTO_VERSION.variant = lib
-
-    CONFIG( static ) : \
-        AUTO_VERSION.variant = header_only
-
-    contains( TEMPLATE, .*app ) : \
-        AUTO_VERSION.variant = app
 
     isEmpty( AUTO_VERSION.gen_dir ) \
     {
@@ -184,17 +184,17 @@ defineTest( generateAutoVersionFiles ) \
     isEqual( AUTO_VERSION.variant, header_only ) \
     {
         AUTO_VERSION_H_CONTENTS += \
-            "$${tab}result[ ::AutoVersion::Info::key( \"compile.mode\" ) ] = ::AutoVersion::Info::attribute( L\"static\" );" \
+            "$${tab}result[ ::AutoVersion::Info::key( \"compile.mode\" ) ] = ::AutoVersion::Info::attribute( L\"static\" );"
     }
     isEqual( AUTO_VERSION.variant, lib ) \
     {
         AUTO_VERSION_H_CONTENTS += \
-            "$${tab}result[ ::AutoVersion::Info::key( \"compile.mode\" ) ] = ::AutoVersion::Info::attribute( L\"dynamic\" );" \
+            "$${tab}result[ ::AutoVersion::Info::key( \"compile.mode\" ) ] = ::AutoVersion::Info::attribute( L\"dynamic\" );"
     }
     isEqual( AUTO_VERSION.variant, app ) \
     {
         AUTO_VERSION_H_CONTENTS += \
-            "$${tab}result[ ::AutoVersion::Info::key( \"compile.mode\" ) ] = ::AutoVersion::Info::attribute( L\"application\" );" \
+            "$${tab}result[ ::AutoVersion::Info::key( \"compile.mode\" ) ] = ::AutoVersion::Info::attribute( L\"application\" );"
     }
 
     AUTO_VERSION_H_CONTENTS += \
@@ -271,7 +271,7 @@ defineTest( generateAutoVersionFiles ) \
                     "$${tab}$${tab}if ( dependencies_method )" \
                     "$${tab}$${tab}$${tab}dependency.m_dependencies = dependencies_method();" \
                     "$${tab}$${tab}result.push_back( dependency );" \
-                    "$${tab}}" \
+                    "$${tab}}"
     }
 
     contains( QT, core ) \
@@ -389,15 +389,6 @@ defineTest( generateAutoVersionFiles ) \
     !appendToFile( "$${AUTO_VERSION.header_file}", $${AUTO_VERSION_H_CONTENTS_END} ) : \
         return( false )
 
-    INCLUDEPATH *= \
-        $${PWD}/include \
-
-    DEPENDPATH *= \
-        $${PWD}/include \
-
-    DEFINES *= \
-        AUTO_VERSION_USED \
-
     export( CONFIG )
     export( DEFINES )
     export( DEPENDPATH )
@@ -433,9 +424,19 @@ defineTest( generateAutoVersionFiles ) \
     !generateAutoVersionFiles() : \
         errorLogging( AutoVersion files generation failed. )
 
+INCLUDEPATH *= \
+    $${PWD}/include \
+
+DEPENDPATH *= \
+    $${PWD}/include \
+
+DEFINES *= \
+    AUTO_VERSION_USED \
+
 isEqual( AUTO_VERSION.variant, app ) \
 {
     win*: LIBS *= -lVersion
+    unix: LIBS *= -ldl
 
     isEqual( QT_MAJOR_VERSION, 4 ) : contains( QT, gui ) : \
             AUTO_VERSION.qt_about_widget = true
