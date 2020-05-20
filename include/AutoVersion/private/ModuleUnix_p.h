@@ -2,13 +2,13 @@
 #ifndef AUTO_VERSION_MODULE_UNIX_IMPL
 #define AUTO_VERSION_MODULE_UNIX_IMPL
 
-//#include <>
+#include <dlfcn.h>
 
 namespace AutoVersion
 {
-    inline void * resolveMethod ( const char * /*module*/, const char * /*method*/ )
+    inline void * resolveMethod ( const char * /*module*/, const char * method )
     {
-        return 0;
+        return ::dlsym( RTLD_DEFAULT, method );
     }
 }
 
