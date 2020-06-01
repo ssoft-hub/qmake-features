@@ -98,7 +98,7 @@ namespace AutoVersion
                     path.resize( path_buffer_size );
                     path_size = GetModuleFileName( handle, &path.front(), path_buffer_size );
                 }
-                path[ path_size ] = TCHAR(); // case Windows XP. It is guaranteed that 'path_size < path_buffer_size' here.
+                path[ path_size ] = TCHAR(); // Resolve the issue of the Windows XP. It is guaranteed that 'path_size < path_buffer_size' here.
                 module.m_info[ Info::key( "path" ) ] = Info::attribute( path );
 
                 // file version
@@ -109,7 +109,7 @@ namespace AutoVersion
                     Bytes version_buffer = Bytes( version_info_size );
                     if ( GetFileVersionInfo( path.c_str(), DWORD(), version_info_size, LPVOID( version_buffer.data() ) ) )
                     {
-                        LPCVOID version_info = &version_buffer.front();
+                        LPVOID version_info = &version_buffer.front(); // Must be LPCVOID but it is issue for some compilers.
                         VS_FIXEDFILEINFO * file_info = 0;
 
                         // Version
