@@ -435,7 +435,7 @@ DEFINES *= \
 
 isEqual( AUTO_VERSION.variant, app ) \
 {
-    win*: LIBS *= -lVersion
+    win32 | win64 : LIBS *= -lVersion
     unix: LIBS *= -ldl
 
     isEqual( QT_MAJOR_VERSION, 4 ) : contains( QT, gui ) : \
