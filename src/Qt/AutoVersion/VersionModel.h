@@ -37,6 +37,7 @@ namespace AutoVersion
         typedef ::AutoVersion::CompileVersion CompileVersion;
         typedef CompileVersion::Dependencies CompileVersions;
         typedef const CompileVersion & CompileRef;
+        typedef const CompileVersion * CompilePtr;
         typedef const RuntimeVersion::Module * RuntimePtr;
 
         struct Item
@@ -44,13 +45,13 @@ namespace AutoVersion
             typedef ::std::vector< Item > Items;
 
             ItemPtr m_parent;
-            CompileRef m_compile_ref;
+            CompilePtr m_compile_ptr;
             RuntimePtr m_runtime_ptr;
             int m_local_row;
             Items m_items;
 
             Item ( CompileRef compile, ItemPtr parent = ItemPtr(), int row = int() )
-                : m_parent( parent ), m_compile_ref( compile ), m_runtime_ptr(), m_local_row( row ), m_items() {}
+                : m_parent( parent ), m_compile_ptr( &compile ), m_runtime_ptr(), m_local_row( row ), m_items() {}
         };
 
     private:
