@@ -109,10 +109,6 @@ defineTest( loadDependencies ) \
     {
         include( "$${MODULE_PRF}" )
     } \
-    else \
-    {
-        DEPENDS.progress *= "$${BASE_NAME}"
-    }
 
     DEPENDS.progress *= $${DEPENDS}
 
