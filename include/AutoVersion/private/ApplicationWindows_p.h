@@ -98,7 +98,7 @@ namespace AutoVersion
                     path.resize( path_buffer_size );
                     path_size = GetModuleFileName( handle, &path.front(), path_buffer_size );
                 }
-                path[ path_size ] = TCHAR(); // Resolve the issue of the Windows XP. It is guaranteed that 'path_size < path_buffer_size' here.
+                path.resize( path_size );
                 module.m_info[ Info::key( "path" ) ] = Info::attribute( path );
 
                 // file version
