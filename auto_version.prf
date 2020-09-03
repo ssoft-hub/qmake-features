@@ -30,6 +30,7 @@ defineTest( generateAutoVersionFiles ) \
         AUTO_VERSION.version = "$${GIT.version}"
         AUTO_VERSION.revision = "$${GIT.revision}"
         AUTO_VERSION.branch = "$${GIT.branch}"
+        AUTO_VERSION.build_number = "$${GIT.build_number}"
         AUTO_VERSION.revision_moment = "$${GIT.revision_moment}"
     }
 
@@ -104,7 +105,14 @@ defineTest( generateAutoVersionFiles ) \
     isEqual( QT_MAJOR_VERSION, 5 ) : isEmpty( VERSION ) \
     {
         CONFIG *= skip_target_version_ext
-        VERSION = $${AUTO_VERSION.major}.$${AUTO_VERSION.minor}.$${AUTO_VERSION.patch}
+        isEmpty( AUTO_VERSION.build_number ) \
+        {
+            VERSION = $${AUTO_VERSION.major}.$${AUTO_VERSION.minor}.$${AUTO_VERSION.patch}
+        } \
+        else \
+        {
+            VERSION = $${AUTO_VERSION.major}.$${AUTO_VERSION.minor}.$${AUTO_VERSION.patch}.$${AUTO_VERSION.build_number}
+        }
     }
 
     AUTO_VERSION.target = $${TARGET}
