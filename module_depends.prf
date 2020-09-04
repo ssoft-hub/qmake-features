@@ -100,9 +100,9 @@ defineTest( recursiveLoadAllDependicies ) \
 
 defineTest( loadDependencies ) \
 {
-    # Include own dependencies
-    BASE_NAME = "$$basename( _PRO_FILE_ )"
-    BASE_NAME = $$replace( BASE_NAME, ".pro", ".prf" )
+    # Include own dependencies (with special endian)
+    BASE_NAME = "$$basename( _PRO_FILE_ )<>"
+    BASE_NAME = $$replace( BASE_NAME, "pro<>", "prf" )
     MODULE_PRF = "$${_PRO_FILE_PWD_}/$${BASE_NAME}"
 
     exists( "$${MODULE_PRF}" ) \
