@@ -72,7 +72,21 @@ defineTest(defineComplexPaths) \
     } \
     else \
     {
-        COMPLEX.config = release
+        force_debug_info \
+        {
+            separate_debug_info \
+            { \
+                COMPLEX.config = release_separate_info
+            } \
+            else \
+            {
+                COMPLEX.config = release_with_info
+            }
+        } \
+        else \
+        {
+            COMPLEX.config = release
+        }
     }
 
     COMPLEX.dest_dir = "$${COMPLEX.pwd}/bin/$${COMPLEX.base_dir}/$${COMPLEX.config}"
