@@ -144,9 +144,9 @@
             </widget>
            </item>
            <item row="5" column="0">
-            <widget class="QLabel" name="license_label_name">
+            <widget class="QLabel" name="copyright_label_name">
              <property name="text">
-              <string>Лицензия:</string>
+              <string>Интеллектуальное право:</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -154,29 +154,9 @@
             </widget>
            </item>
            <item row="5" column="1">
-            <widget class="QLabel" name="license_label">
-             <property name="text">
-              <string>Информация о лицензии</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="copyright_label_name">
-             <property name="text">
-              <string>Интелектуальное право:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="1">
             <widget class="QLabel" name="copyright_label">
              <property name="text">
-              <string>Информация об интелектуальном праве</string>
+              <string>Информация об интеллектуальном праве</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -201,17 +181,11 @@
         </layout>
        </item>
        <item>
-        <spacer name="product_tab_spacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+        <widget class="QTextEdit" name="info_view">
+         <property name="readOnly">
+          <bool>true</bool>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
+        </widget>
        </item>
       </layout>
      </widget>

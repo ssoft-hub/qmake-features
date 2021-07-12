@@ -6,21 +6,22 @@
 
 namespace AutoVersion
 {
+    namespace Windows { typedef void * void_ptr; }
 
-    inline FARPROC resolveMethod ( LPCSTR module, LPCSTR method )
+    inline Windows::void_ptr resolveMethod ( LPCSTR module, LPCSTR method )
     {
         HMODULE handle = GetModuleHandleA( module );
         if ( !handle )
-            return FARPROC();
-        return GetProcAddress( handle, method );
+            return Windows::void_ptr();
+        return Windows::void_ptr( GetProcAddress( handle, method ) );
     }
 
-    inline FARPROC resolveMethod ( LPCWSTR module, LPCSTR method )
+    inline Windows::void_ptr resolveMethod ( LPCWSTR module, LPCSTR method )
     {
         HMODULE handle = GetModuleHandleW( module );
         if ( !handle )
-            return FARPROC();
-        return GetProcAddress( handle, method );
+            return Windows::void_ptr();
+        return Windows::void_ptr( GetProcAddress( handle, method ) );
     }
 }
 

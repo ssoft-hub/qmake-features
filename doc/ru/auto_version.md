@@ -129,7 +129,7 @@ A           версия a1(a1)a1     ok
     * Если $${QMAKE_TARGET_PRODUCT} не задан, то подставляется значение переменной TARGET.
 * AUTO_VERSION.vendor - наименование производителя.
     * Если значение не задано явно, то подставляется значение переменной QMAKE_TARGET_COMPANY.
-* AUTO_VERSION.copyright - интелектуальное право.
+* AUTO_VERSION.copyright - интеллектуальное право.
     * Если значение не задано явно, то подставляется значение переменной QMAKE_TARGET_COPYRIGHT.
 * AUTO_VERSION.license - вид лицензирования.
     * Если значение не задано явно, то подставляется значение переменной QMAKE_TARGET_LICENSE.

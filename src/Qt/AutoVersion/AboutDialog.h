@@ -21,10 +21,13 @@ namespace AutoVersion
 
     private:
         explicit AboutDialog ( QWidget * const product, QWidget * const parent, Qt::WindowFlags flags = Qt::WindowFlags() );
+        explicit AboutDialog ( QWidget * const product, QWidget * const parent, const QString & info, Qt::WindowFlags flags = Qt::WindowFlags() );
 
     public:
         static void execute ( QWidget * const parent, Qt::WindowFlags flags = Qt::WindowFlags() );
+        static void execute ( QWidget * const parent, const QString & info, Qt::WindowFlags flags = Qt::WindowFlags() );
         static void execute ( QWidget * const product, QWidget * const parent, Qt::WindowFlags flags = Qt::WindowFlags() );
+        static void execute ( QWidget * const product, QWidget * const parent, const QString & info, Qt::WindowFlags flags = Qt::WindowFlags() );
     };
 }
 

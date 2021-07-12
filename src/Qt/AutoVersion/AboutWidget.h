@@ -35,6 +35,9 @@ namespace AutoVersion
 
         void setProductWidget ( QWidget * widget );
         QWidget * productWidget ();
+
+        void setProductInformation ( const QString & text );
+        QString productInformation () const;
     };
 }
 

@@ -45,12 +45,10 @@ namespace AutoVersion
         m_ui->name_label->setText( itemString( version.m_compile.m_info[ "product" ] ) );
         m_ui->version_label->setText( itemString( version.m_compile.m_info[ "version" ] ) );
         m_ui->note_label->setText( itemString( version.m_compile.m_info[ "description" ] ) );
-        m_ui->revision_moment_label->setText( QString::fromLatin1( "%1" )
-            .arg( itemString( version.m_compile.m_info[ "revision.moment" ] ) ) );
-        m_ui->compile_moment_label->setText( QString::fromLatin1( "%1" )
-            .arg( itemString( version.m_compile.m_info[ "compile.moment" ] ) ) );
+        m_ui->revision_moment_label->setText( itemString( version.m_compile.m_info[ "revision.moment" ] ) );
+        m_ui->compile_moment_label->setText( itemString( version.m_compile.m_info[ "compile.moment" ] ) );
         m_ui->revision_label->setText( itemString( version.m_compile.m_info[ "revision" ] ) );
-        m_ui->license_label->setText( itemString( version.m_compile.m_info[ "license" ] ) );
+        //m_ui->license_label->setText( itemString( version.m_compile.m_info[ "license" ] ) );
         m_ui->vendor_label->setText( itemString( version.m_compile.m_info[ "vendor" ] ) );
         m_ui->copyright_label->setText( itemString( version.m_compile.m_info[ "copyright" ] ) );
     #endif
@@ -70,5 +68,18 @@ namespace AutoVersion
         m_product_widget = widget;
         m_product_widget->setParent( this, Qt::WindowFlags() );
         m_ui->product_layout->insertWidget( 0, m_product_widget );
+    }
+
+    void AboutWidget::setProductInformation ( const QString & text )
+    {
+        if ( Qt::mightBeRichText( text ) )
+            m_ui->info_view->setHtml( text );
+        else
+            m_ui->info_view->setPlainText( text );
+    }
+
+    QString AboutWidget::productInformation () const
+    {
+        return m_ui->info_view->document()->toHtml();
     }
 }

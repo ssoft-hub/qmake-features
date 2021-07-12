@@ -68,6 +68,8 @@ namespace AutoVersion
                     module.m_aliases.insert( Info::attribute( name ) );
                 }
 
+                typedef void * void_ptr;
+
                 // case runtime info method
                 size_t dot_position = name.rfind( TEXT( "." ) );
                 ::std::string module_name = ( dot_position != ::std::string::npos )
@@ -75,7 +77,7 @@ namespace AutoVersion
                     : ::std::string( name.begin(), name.end() );
                 ::std::string version_function_name = ::std::string( "runtimeInfoAbout_" ) + module_name;
                 typedef ::AutoVersion::Info (*InfoMethod) ();
-                InfoMethod info_method = InfoMethod( GetProcAddress( handle, version_function_name.c_str() ) );
+                InfoMethod info_method = InfoMethod( void_ptr( GetProcAddress( handle, version_function_name.c_str() ) ) );
                 if ( info_method )
                 {
                     module.m_info = info_method();
@@ -84,7 +86,7 @@ namespace AutoVersion
 
                 // case Qt version method
                 typedef const char * (*QtVersionMethod) ();
-                QtVersionMethod qt_version_method = QtVersionMethod( GetProcAddress( handle, "qVersion" ) );
+                QtVersionMethod qt_version_method = QtVersionMethod( void_ptr( GetProcAddress( handle, "qVersion" ) ) );
                 if ( qt_version_method )
                     module.m_info[ Info::key( "revision" ) ] = module.m_info[ Info::key( "version" ) ] = Info::attribute( qt_version_method() );
 
