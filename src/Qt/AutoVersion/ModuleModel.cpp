@@ -114,11 +114,11 @@ namespace AutoVersion
     {
         static const QString column_header[ Column::Count ] =
         {
-            trUtf8( "Product" ),
-            trUtf8( "Version" ),
-            trUtf8( "Path" ),
-            trUtf8( "Vendor" ),
-            trUtf8( "Copyright" )
+            tr( "Product" ),
+            tr( "Version" ),
+            tr( "Path" ),
+            tr( "Vendor" ),
+            tr( "Copyright" )
         };
 
         switch ( orientation )

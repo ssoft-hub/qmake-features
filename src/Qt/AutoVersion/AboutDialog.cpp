@@ -15,10 +15,9 @@ namespace AutoVersion
             about_widget->setProductWidget( product );
 
         if ( parent )
-            setWindowTitle( trUtf8( "About program \"%1\"" ).arg( parent->windowTitle() ) );
+            setWindowTitle( tr( "About program \"%1\"" ).arg( parent->windowTitle() ) );
         else
-            setWindowTitle( trUtf8( "About program" ) );
-
+            setWindowTitle( tr( "About program" ) );
     }
 
     AboutDialog::AboutDialog ( QWidget * const product, QWidget * const parent, const QString & info, Qt::WindowFlags flags )
@@ -33,9 +32,9 @@ namespace AutoVersion
             about_widget->setProductWidget( product );
 
         if ( parent )
-            setWindowTitle( trUtf8( "About program \"%1\"" ).arg( parent->windowTitle() ) );
+            setWindowTitle( tr( "About program \"%1\"" ).arg( parent->windowTitle() ) );
         else
-            setWindowTitle( trUtf8( "About program" ) );
+            setWindowTitle( tr( "About program" ) );
 
         about_widget->setProductInformation( info );
     }
