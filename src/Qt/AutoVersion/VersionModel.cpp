@@ -37,7 +37,7 @@ namespace AutoVersion
         if ( key == "product" )
         {
             QString tool_tip;
-            tool_tip += QString::fromLatin1( "<b>%1</b>" ).arg( VersionModel::trUtf8( "Cборка:" ) );
+            tool_tip += QString::fromLatin1( "<b>%1</b>" ).arg( VersionModel::tr( "Compile time:" ) );
             tool_tip += QString::fromLatin1( "<table>" );
             for ( ::AutoVersion::Info::Attributes::const_iterator iter = compile_info.m_attributes.begin();
                 iter != compile_info.m_attributes.end(); ++iter )
@@ -51,7 +51,7 @@ namespace AutoVersion
             tool_tip += QString::fromLatin1( "</table>" );
             tool_tip += QString::fromLatin1( "<hr>" );
 
-            tool_tip += QString::fromLatin1( "<b>%1</b>" ).arg( VersionModel::trUtf8( "Выполнение:" ) );
+            tool_tip += QString::fromLatin1( "<b>%1</b>" ).arg( VersionModel::tr( "Run time:" ) );
             tool_tip += QString::fromLatin1( "<table>" );
             for ( ::AutoVersion::Info::Attributes::const_iterator iter = runtime_info.m_attributes.begin();
                 iter != runtime_info.m_attributes.end(); ++iter )
@@ -68,14 +68,14 @@ namespace AutoVersion
         else if ( compile_info[ "compile.mode" ] == ::AutoVersion::Info::attribute( "static" ) )
         {
             return QString::fromLatin1( "<b>%1:</b> %2" )
-                .arg( VersionModel::trUtf8( "Сборка:" ) )
+                .arg( VersionModel::tr( "Сборка:" ) )
                 .arg( itemString( compile_info[ key ] ) );
         }
 
         return QString::fromLatin1( "<b>%1:</b> %2<br/><b>%3:</b> %4" )
-            .arg( VersionModel::trUtf8( "Cборка:" ) )
+            .arg( VersionModel::tr( "Compile time:" ) )
             .arg( itemString( compile_info[ key ] ) )
-            .arg( VersionModel::trUtf8( "Выполнение:" ) )
+            .arg( VersionModel::tr( "Run time:" ) )
             .arg( itemString( runtime_info[ key ] ) );
     }
 
@@ -185,15 +185,15 @@ namespace AutoVersion
     {
         static const QString column_header[ Column::Count ] =
         {
-            trUtf8( "Product" ),
-            trUtf8( "Version" ),
-            trUtf8( "Revision" ),
-            trUtf8( "Revision moment" ),
-            trUtf8( "Compile moment" ),
-            trUtf8( "Vendor" ),
-            trUtf8( "Copyright" ),
-            trUtf8( "License" ),
-            trUtf8( "Description" )
+            tr( "Product" ),
+            tr( "Version" ),
+            tr( "Revision" ),
+            tr( "Revision moment" ),
+            tr( "Compile moment" ),
+            tr( "Vendor" ),
+            tr( "Copyright" ),
+            tr( "License" ),
+            tr( "Description" )
         };
 
         switch ( orientation )
