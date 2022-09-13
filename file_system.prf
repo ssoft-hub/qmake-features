@@ -30,7 +30,7 @@ defineTest( makePath ) \
         return( true )
     }
 
-    isEqual( QT_MAJOR_VERSION, 5 ) \
+    greaterThan( QT_MAJOR_VERSION, 4 ) \
     {
         mkpath( "$${ARGS}" ) : \
             return( true )
@@ -99,7 +99,7 @@ defineTest( appendToFile ) \
             }
         }
 
-        isEqual( QT_MAJOR_VERSION, 5 ) \
+        greaterThan( QT_MAJOR_VERSION, 4 ) \
         {
             !write_file( "$${file_path}", file_line, append ) \
             {
@@ -123,7 +123,7 @@ defineTest( writeToFile ) \
         appendToFile( "$${file_path}", $${file_data} )
     }
 
-    isEqual( QT_MAJOR_VERSION, 5 ) \
+    greaterThan( QT_MAJOR_VERSION, 4 ) \
     {
         !write_file( "$${file_path}", file_data ) \
         {
@@ -256,7 +256,7 @@ defineReplace( cleanPath ) \
         return( "$${result}" )
     }
 
-    isEqual( QT_MAJOR_VERSION, 5 ) \
+    greaterThan( QT_MAJOR_VERSION, 4 ) \
     {
         return( "$$clean_path( "$${1}" )" )
     }

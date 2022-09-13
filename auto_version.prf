@@ -102,7 +102,7 @@ defineTest( generateAutoVersionFiles ) \
     isEmpty( AUTO_VERSION.minor ) : AUTO_VERSION.minor = "0"
     isEmpty( AUTO_VERSION.patch ) : AUTO_VERSION.patch = "0"
 
-    isEqual( QT_MAJOR_VERSION, 5 ) : isEmpty( VERSION ) \
+    greaterThan( QT_MAJOR_VERSION, 4 ) : isEmpty( VERSION ) \
     {
         CONFIG *= skip_target_version_ext
         isEmpty( AUTO_VERSION.build_number ) \
@@ -284,7 +284,7 @@ defineTest( generateAutoVersionFiles ) \
 
     contains( QT, core ) \
     {
-        isEqual( QT_MAJOR_VERSION, 5 ) \
+        greaterThan( QT_MAJOR_VERSION, 4 ) \
         {
             CONFIG( debug, debug|release ) \
             {
@@ -449,7 +449,7 @@ isEqual( AUTO_VERSION.variant, app ) \
     isEqual( QT_MAJOR_VERSION, 4 ) : contains( QT, gui ) : \
             AUTO_VERSION.qt_about_widget = true
 
-    isEqual( QT_MAJOR_VERSION, 5 ) : contains( QT, widgets ) : \
+    greaterThan( QT_MAJOR_VERSION, 4 ) : contains( QT, widgets ) : \
             AUTO_VERSION.qt_about_widget = true
 }
 
