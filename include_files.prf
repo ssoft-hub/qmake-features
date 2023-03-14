@@ -1,7 +1,6 @@
 !load( message_logging ) : error( Can not find feature \"message_logging\" )
 !load( file_system ) : errorLogging( Can not find feature \"file_system\" )
 
-
 defineTest( includeFilesFrom ) \
 {
     directories = $${1}
@@ -20,21 +19,27 @@ defineTest( includeFilesFrom ) \
             !isEmpty( entries ) \
             {
                 HEADERS *= $$files( $${directory}/*.h )
+                HEADERS *= $$files( $${directory}/*.hh )
                 HEADERS *= $$files( $${directory}/*.hpp )
                 SOURCES *= $$files( $${directory}/*.c )
+                SOURCES *= $$files( $${directory}/*.cc )
                 SOURCES *= $$files( $${directory}/*.cpp )
                 FORMS *= $$files( $${directory}/*.ui )
                 LEXSOURCES *= $$files( $${directory}/*.l )
                 RES_FILE *= $$files( $${directory}/*.rc )
                 RESOURCES *= $$files( $${directory}/*.qrc )
                 TRANSLATIONS *= $$files( $${directory}/*.ts )
-                DISTFILES *= $$files( $${directory}/*.vert )
-                DISTFILES *= $$files( $${directory}/*.frag )
-                DISTFILES *= $$files( $${directory}/*.qml )
-                DISTFILES *= $$files( $${directory}/*.js )
                 STATECHARTS *= $$files( $${directory}/*.scxml )
                 OTHER_FILES *= $$files( $${directory}/*.qmodel )
                 OTHER_FILES *= $$files( $${directory}/*.md )
+
+                unix* \
+                {
+                    DISTFILES *= $$files( $${directory}/*.vert )
+                    DISTFILES *= $$files( $${directory}/*.frag )
+                    DISTFILES *= $$files( $${directory}/*.qml )
+                    DISTFILES *= $$files( $${directory}/*.js )
+                }
             }
 
             for( entry, entries ) \

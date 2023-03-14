@@ -219,8 +219,16 @@ defineTest( generateAutoVersionFiles ) \
         "$${tab}return result;" \
         "}" \
         "//" \
+        "$${LITERAL_HASH}ifdef _MSC_VER" \
+        "$${LITERAL_HASH}   pragma warning( disable : 4190 )" \
+        "$${LITERAL_HASH}endif" \
+        "//" \
         "extern \"C\" $${AUTO_VERSION_EXPORT_VALUE}::AutoVersion::Info runtimeInfoAbout_$${AUTO_VERSION.target} ();" \
         "extern \"C\" $${AUTO_VERSION_EXPORT_VALUE}::AutoVersion::CompileVersion::OptionalDependencies compileDependenciesOf_$${AUTO_VERSION.target} ();" \
+        "//" \
+        "$${LITERAL_HASH}ifdef _MSC_VER" \
+        "$${LITERAL_HASH}   pragma warning( default : 4190 )" \
+        "$${LITERAL_HASH}endif" \
         "//" \
 
     AUTO_VERSION_H_CONTENTS_END += \

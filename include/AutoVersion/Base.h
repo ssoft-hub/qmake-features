@@ -2,6 +2,10 @@
 #ifndef AUTO_VERSION_BASE
 #define AUTO_VERSION_BASE
 
+#ifdef _MSC_VER
+#   pragma warning( disable : 4244 )
+#endif
+
 #include <cstring>
 #include <list>
 #include <map>
@@ -194,5 +198,9 @@ namespace AutoVersion
         return versionStatus( VersionView( version.m_compile, version.m_runtime ) );
     }
 }
+
+#ifdef _MSC_VER
+#   pragma warning( default : 4244 )
+#endif
 
 #endif
