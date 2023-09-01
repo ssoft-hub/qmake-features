@@ -57,7 +57,7 @@ namespace AutoVersion
         Items m_items;
 
     public:
-        explicit ModuleModel ( const RuntimeVersion & version, QObject * const parent = nullptr );
+        explicit ModuleModel ( const RuntimeVersion & version, QObject * const parent );
         virtual ~ModuleModel () {}
 
         virtual QVariant data ( const QModelIndex & index, int role ) const; // was pure
