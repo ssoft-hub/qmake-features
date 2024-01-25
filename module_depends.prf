@@ -29,7 +29,7 @@ defineTest( loadDependency ) \
             {
                 MODULE_PRF =
                 !isEqual( TARGET, "$${module}" ) : \
-                    errorLogging( Can not resolve dependency $${module} )
+                    warningLogging( Can not resolve dependency $${module} )
             }
         }
     }
