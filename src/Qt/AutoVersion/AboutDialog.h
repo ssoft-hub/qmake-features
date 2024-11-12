@@ -18,9 +18,13 @@ namespace AutoVersion
     private:
         typedef AboutDialog ThisType;
         typedef QDialog ParentType;
+        typedef QWidget * WidgetAssociation;
 
-    private:
-        explicit AboutDialog ( QWidget * const product, QWidget * const parent, Qt::WindowFlags flags = Qt::WindowFlags() );
+    public:
+        explicit AboutDialog (
+            QWidget * const product = WidgetAssociation(),
+            QWidget * const parent = WidgetAssociation(),
+            Qt::WindowFlags flags = Qt::WindowFlags() );
         explicit AboutDialog ( QWidget * const product, QWidget * const parent, const QString & info, Qt::WindowFlags flags = Qt::WindowFlags() );
 
     public:

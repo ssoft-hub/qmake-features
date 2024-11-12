@@ -271,6 +271,7 @@ defineTest( generateAutoVersionFiles ) \
         "//" \
 
     # Generation tree of dependencies
+    # message( DEPENDS.loaded $$DEPENDS.loaded )
     for( depend, DEPENDS.loaded ) \
     {
         AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.gen_dir}/$${depend}/AutoVersion_p.h"
@@ -292,16 +293,17 @@ defineTest( generateAutoVersionFiles ) \
 
     contains( QT, core ) \
     {
+        CONFIG( debug, debug|release ) \
+        {
+            QT_CORE_PRODUCT = "Qt$${QT_MAJOR_VERSION}Cored"
+        } \
+        else \
+        {
+            QT_CORE_PRODUCT = "Qt$${QT_MAJOR_VERSION}Core"
+        }
+
         greaterThan( QT_MAJOR_VERSION, 4 ) \
         {
-            CONFIG( debug, debug|release ) \
-            {
-                QT_CORE_PRODUCT = "Qt5Cored"
-            } \
-            else \
-            {
-                QT_CORE_PRODUCT = "Qt5Core"
-            }
 
             AUTO_VERSION_CPP_CONTENTS += \
                 "//" \
@@ -320,15 +322,6 @@ defineTest( generateAutoVersionFiles ) \
 
         isEqual( QT_MAJOR_VERSION, 4 ) \
         {
-            CONFIG( debug, debug|release ) \
-            {
-                QT_CORE_PRODUCT = "QtCored4"
-            } \
-            else \
-            {
-                QT_CORE_PRODUCT = "QtCore4"
-            }
-
             AUTO_VERSION_CPP_CONTENTS += \
                 "//" \
                 "$${tab}{" \

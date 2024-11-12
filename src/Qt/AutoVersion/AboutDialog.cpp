@@ -7,7 +7,11 @@ namespace AutoVersion
         : ParentType( parent, flags )
     {
         setLayout( new QVBoxLayout( this ) );
-        layout()->setMargin( 0 );
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+        layout()->setContentsMargins(QMargins());
+#else
+        layout()->setMargin(0);
+#endif
         AboutWidget * about_widget = new AboutWidget( this );
         layout()->addWidget( about_widget );
 
@@ -24,7 +28,11 @@ namespace AutoVersion
         : ParentType( parent, flags )
     {
         setLayout( new QVBoxLayout( this ) );
-        layout()->setMargin( 0 );
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+        layout()->setContentsMargins(QMargins());
+#else
+        layout()->setMargin(0);
+#endif
         AboutWidget * about_widget = new AboutWidget( this );
         layout()->addWidget( about_widget );
 
