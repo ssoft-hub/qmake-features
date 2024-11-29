@@ -168,7 +168,7 @@ namespace AutoVersion
     {
         if ( !parent.isValid() )
         {
-            return m_items.size();
+            return int(m_items.size());
         }
         else
         {
