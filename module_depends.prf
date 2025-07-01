@@ -2,42 +2,85 @@
 !load( message_logging ) : error( Can not find feature \"message_logging\" )
 !load( module_finding ) : errorLogging( Can not find feature \"module_finding\" )
 
-defineTest( loadDependency ) \
+defineTest( loadDependsOnly ) \
 {
+    unset(DEPENDS.progress)
+
     for( module, ARGS ) \
     {
-        DEPENDS.progress -= "$${module}"
-
-        !contains( DEPENDS.loaded, "$${module}" ) \
+        contains( DEPENDS.ordered, "$${module}" ) \
         {
-            DEPENDS.loaded *= "$${module}"
+            DEPENDS.ordered -= "$${module}"
+        } \
 
-            for( subdir, DEPEND_PATH ) \
-            {
-                project_entry = "$${subdir}/$${module}.prf"
-                exists( "$${project_entry}" ): \
-                    break()
-            }
+        DEPENDS.ordered += "$${module}"
 
-            exists( "$${project_entry}" ) \
+        for( subdir, DEPEND_PATH ) \
+        {
+            project_entry = "$${subdir}/$${module}.prf"
+            exists( "$${project_entry}" ): \
+                break()
+        }
+
+        exists( "$${project_entry}" ) \
+        {
+            unset(DEPENDS)
+            include( "$${project_entry}" )
+
+            for( depend, DEPENDS ) \
             {
-                messageLogging( Loading the dependency $${module} from \"$${project_entry}\" )
-                include( "$${project_entry}" )
-                DEPENDS.progress = $${DEPENDS}
-            } \
-            else \
-            {
-                MODULE_PRF =
-                !isEqual( TARGET, "$${module}" ) : \
-                    warningLogging( Can not resolve dependency $${module} )
+                contains( DEPENDS.ordered, "$${depend}" ) \
+                {
+                    # Add to tail (the static libraries order)
+                    DEPENDS.ordered -= "$${depend}"
+                    DEPENDS.ordered += "$${depend}"
+                }
+
+                contains( DEPENDS.progress, "$${depend}" ) \
+                {
+                    DEPENDS.progress -= $${DEPENDS}
+                }
+                DEPENDS.progress += $${DEPENDS}
             }
+        } \
+        else \
+        {
+            MODULE_PRF =
+            !isEqual( TARGET, "$${module}" ) : \
+                warningLogging( Can not resolve dependency $${module} )
         }
     }
 
-    # If it needs this list can be extended (in 3 places into this file)
-    export( DEPENDS )
     export( DEPENDS.progress )
-    export( DEPENDS.loaded )
+    export( DEPENDS.ordered )
+    return( true )
+}
+
+defineTest( loadDependencies ) \
+{
+    for( module, ARGS ) \
+    {
+        for( subdir, DEPEND_PATH ) \
+        {
+            project_entry = "$${subdir}/$${module}.prf"
+            exists( "$${project_entry}" ): \
+                break()
+        }
+
+        exists( "$${project_entry}" ) \
+        {
+            messageLogging( Loading the dependency $${module} from \"$${project_entry}\" )
+            include( "$${project_entry}" )
+        } \
+        else \
+        {
+            MODULE_PRF =
+            !isEqual( TARGET, "$${module}" ) : \
+                warningLogging( Can not resolve dependency $${module} )
+        }
+    }
+
+    # This list can be expanded if needed (in 2 places in this file)
     export( CONFIG )
     export( QMAKE_CXXFLAGS )
     export( INCLUDEPATH )
@@ -56,13 +99,27 @@ defineTest( loadDependency ) \
     return( true )
 }
 
-defineTest( recursiveLoadAllDependicies ) \
+defineTest( resolveDependencies ) \
 {
+    # Include own dependencies (with special endian)
+    BASE_NAME = "$$basename( _PRO_FILE_ )</>"
+    BASE_NAME = $$replace( BASE_NAME, "pro</>", "prf" )
+    MODULE_PRF = "$${_PRO_FILE_PWD_}/$${BASE_NAME}"
+
+    exists( "$${MODULE_PRF}" ) \
+    {
+        include( "$${MODULE_PRF}" )
+    } \
+
+    messageLogging( Dependencies resolving ... )
+
+    DEPENDS.progress = $${DEPENDS}
+
     for( i, 0..1000 ) \
     {
         !isEmpty( DEPENDS.progress ) \
         {
-            loadDependency( $${DEPENDS.progress} )
+            loadDependsOnly( $${DEPENDS.progress} )
         } \
         else \
         {
@@ -76,10 +133,9 @@ defineTest( recursiveLoadAllDependicies ) \
         error(Fatal dependency resolving)
     }
 
-    # If it needs this list can be extended (in 3 places into this file)
-    export( DEPENDS )
-    export( DEPENDS.progress )
-    export( DEPENDS.loaded )
+    loadDependencies($${DEPENDS.ordered})
+
+    # This list can be expanded if needed (in 2 places in this file)
     export( CONFIG )
     export( QMAKE_CXXFLAGS )
     export( INCLUDEPATH )
@@ -95,55 +151,10 @@ defineTest( recursiveLoadAllDependicies ) \
     export( RESOURCES )
     export( TRANSLATIONS )
     export( DISTFILES )
-    return(true)
+    return( true )
 }
 
-defineTest( loadDependencies ) \
-{
-    # Include own dependencies (with special endian)
-    BASE_NAME = "$$basename( _PRO_FILE_ )</>"
-    BASE_NAME = $$replace( BASE_NAME, "pro</>", "prf" )
-    MODULE_PRF = "$${_PRO_FILE_PWD_}/$${BASE_NAME}"
 
-    exists( "$${MODULE_PRF}" ) \
-    {
-        include( "$${MODULE_PRF}" )
-    } \
-
-    DEPENDS.progress *= $${DEPENDS}
-
-    # Resolve dependencies
-    if ( !isEmpty( DEPENDS ) ) \
-    {
-        messageLogging( Dependencies resolving ... )
-        loadDependency( $${DEPENDS.progress} )
-        recursiveLoadAllDependicies()
-    }
-
-    # Delete self
-    LIBS -= -l$${TARGET}
-
-    # If it needs this list can be extended (in 3 places into this file)
-    export( DEPENDS )
-    export( DEPENDS.progress )
-    export( DEPENDS.loaded )
-    export( CONFIG )
-    export( QMAKE_CXXFLAGS )
-    export( INCLUDEPATH )
-    export( DEPENDPATH )
-    export( LIBS )
-    export( QT )
-    export( DEFINES )
-    export( HEADERS )
-    export( SOURCES )
-    export( FORMS )
-    export( LEXSOURCES )
-    export( RES_FILE )
-    export( RESOURCES )
-    export( TRANSLATIONS )
-    export( DISTFILES )
-    return(true)
-}
 
 # global
-loadDependencies()
+resolveDependencies()
