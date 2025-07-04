@@ -271,7 +271,6 @@ defineTest( generateAutoVersionFiles ) \
         "//" \
 
     # Generation tree of dependencies
-    # message( DEPENDS.loaded $$DEPENDS.loaded )
     for( depend, DEPENDS.loaded ) \
     {
         AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.gen_dir}/$${depend}/AutoVersion_p.h"

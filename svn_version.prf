@@ -15,19 +15,10 @@ defineTest( defineSvnVersion ) \
 
     isEmpty( SVN.pwd ) \
     {
-        !lessThan( SVN.svn_version, "1.7.0" ) \
-        {
-            SVN.pwd = $$findUpperDirectoryWith( ".svn", "$$first(SOURCES)" )
-            isEmpty( SVN.pwd ) : \
-                SVN.pwd = $$findUpperDirectoryWith( ".svn", "$$first(HEADERS)" )
-        } \
-        else \
-        {
-            SVN.pwd = $$commonDirectoryForSources()
-            SVN.test = $$findUpperDirectoryWith( ".svn", "$${SVN.pwd}" )
-            isEmpty( SVN.test ) : \
-                return( false )
-        }
+        SVN.pwd = $$commonDirectoryForSources()
+        SVN.test = $$findUpperDirectoryWith( ".svn", "$${SVN.pwd}" )
+        isEmpty( SVN.test ) : \
+            return( false )
     }
 
     isEmpty( SVN.pwd ) : \

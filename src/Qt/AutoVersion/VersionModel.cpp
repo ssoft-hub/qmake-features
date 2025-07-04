@@ -68,14 +68,14 @@ namespace AutoVersion
         else if ( compile_info[ "compile.mode" ] == ::AutoVersion::Info::attribute( "static" ) )
         {
             return QString::fromLatin1( "<b>%1:</b> %2" )
-                .arg( VersionModel::tr( "Сборка:" ) )
+                .arg( VersionModel::tr( "Compile time" ) )
                 .arg( itemString( compile_info[ key ] ) );
         }
 
         return QString::fromLatin1( "<b>%1:</b> %2<br/><b>%3:</b> %4" )
-            .arg( VersionModel::tr( "Compile time:" ) )
+            .arg( VersionModel::tr( "Compile time" ) )
             .arg( itemString( compile_info[ key ] ) )
-            .arg( VersionModel::tr( "Run time:" ) )
+            .arg( VersionModel::tr( "Run time" ) )
             .arg( itemString( runtime_info[ key ] ) );
     }
 
