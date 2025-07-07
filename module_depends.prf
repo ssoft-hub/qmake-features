@@ -135,6 +135,9 @@ defineTest( resolveDependencies ) \
 
     loadDependencies($${DEPENDS.ordered})
 
+    # Delete self
+    LIBS -= -l$${TARGET}
+
     # This list can be expanded if needed (in 2 places in this file)
     export( CONFIG )
     export( QMAKE_CXXFLAGS )
