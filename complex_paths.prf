@@ -102,6 +102,8 @@ defineTest(defineComplexPaths) \
         check_temp_pwd = $$lower( $${check_temp_pwd} )
     }
 
+    MODULE.base_dir =
+
     for( i, 0..1000 ) \
     {
         isEqual( check_temp_pwd, $${check_pwd} ) : \
