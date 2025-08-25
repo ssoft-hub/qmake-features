@@ -139,7 +139,8 @@ defineTest(defineComplexPaths) \
     UI_DIR = "$${MODULE.gen_dir}/ui"
 
     export( DESTDIR )
-    export( OBJECTS_DIR )
+    !equals( QT_MAJOR_VERSION, 6 ) : \
+        export( OBJECTS_DIR )
     export( LIBS )
     export( MOC_DIR )
     export( RCC_DIR )
