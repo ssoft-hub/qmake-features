@@ -134,6 +134,7 @@ defineTest( resolveDependencies ) \
     }
 
     loadDependencies($${DEPENDS.ordered})
+    DEPENDS = $${DEPENDS.ordered}
 
     # Delete self
     LIBS -= -l$${TARGET}
@@ -154,6 +155,7 @@ defineTest( resolveDependencies ) \
     export( RESOURCES )
     export( TRANSLATIONS )
     export( DISTFILES )
+    export( DEPENDS )
     return( true )
 }
 

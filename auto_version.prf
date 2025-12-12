@@ -242,7 +242,7 @@ defineTest( generateAutoVersionFiles ) \
         "$${LITERAL_HASH}include \"AutoVersion_p.h\"" \
         "$${LITERAL_HASH}include <AutoVersion/Module.h>" \
 
-    for( depend, DEPENDS.loaded ) \
+    for( depend, DEPENDS ) \
     {
         AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.gen_dir}/$${depend}/AutoVersion_p.h"
         !isEqual( AUTO_VERSION.header_file, $${AUTO_VERSION_H_TEMP_FILE} ) : \
@@ -271,7 +271,7 @@ defineTest( generateAutoVersionFiles ) \
         "//" \
 
     # Generation tree of dependencies
-    for( depend, DEPENDS.loaded ) \
+    for( depend, DEPENDS ) \
     {
         AUTO_VERSION_H_TEMP_FILE = "$${AUTO_VERSION.gen_dir}/$${depend}/AutoVersion_p.h"
         AUTO_VERSION_TEMP.target = $${depend}
