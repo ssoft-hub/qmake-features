@@ -20,6 +20,14 @@ namespace AutoVersion
     inline std::wstring widen(std::string const & s) { return std::wstring(s.begin(), s.end()); }
     inline std::string narrow(std::wstring const & ws) { return std::string(ws.begin(), ws.end()); }
 
+    inline std::wstring fileNameFromPath(std::wstring const & path)
+    {
+        if (path.empty())
+            return std::wstring();
+        size_t pos = path.find_last_of(L'/');
+        return (pos == std::wstring::npos) ? path : path.substr(pos + 1);
+    }
+
     inline std::wstring moduleNameFromPath(std::wstring const & path)
     {
         if (path.empty())
@@ -55,7 +63,6 @@ namespace AutoVersion
         return filtered;
     }
 
-    // ---------- Application for all loaded modules ----------
     struct Application
     {
         RuntimeVersion m_runtime;
@@ -73,6 +80,7 @@ namespace AutoVersion
             Info::Attribute product;
 
             std::string path = info->dlpi_name ? info->dlpi_name : "";
+            std::wstring wpath = widen(path);
             if (path.empty())
             {
                 char exe[4096];
@@ -81,13 +89,17 @@ namespace AutoVersion
                 {
                     exe[r] = '\0';
                     path = exe;
+                    wpath = widen(path);
                 }
 
                 module.m_info = ::AutoVersion::info();
                 product = module.m_info[Info::key("product")];
             }
+            else
+            {
+                module.m_aliases.insert(Info::attribute(fileNameFromPath(wpath)));
+            }
 
-            std::wstring wpath = widen(path);
             if (self->m_seen_paths.count(wpath))
                 return 0; // already processed
 
@@ -135,7 +147,7 @@ namespace AutoVersion
             if (!wpath.empty())
                 module.m_info[Info::key("path")] = Info::attribute(wpath);
 
-            // version from filename
+                   // version from filename
             if (module.m_info[Info::key("version")].empty())
             {
                 std::wstring ver = parseVersionFromFilename(wpath);
